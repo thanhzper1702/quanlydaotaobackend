@@ -28,6 +28,10 @@ public class RoleFilter implements ContainerRequestFilter {
             path = path.substring(1);
         }
 
+        if (path.startsWith("auth")) {
+            return;
+        }
+
         SecurityContext securityContext = requestContext.getSecurityContext();
         AppUserPrincipal principal = null;
         if (securityContext instanceof AppSecurityContext) {

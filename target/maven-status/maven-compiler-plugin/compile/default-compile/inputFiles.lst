@@ -5,7 +5,6 @@ D:\CNPM\project\backend\src\main\java\com\university\core\config\AppContextListe
 D:\CNPM\project\backend\src\main\java\com\university\core\config\DbConfig.java
 D:\CNPM\project\backend\src\main\java\com\university\core\config\EnvironmentLoader.java
 D:\CNPM\project\backend\src\main\java\com\university\core\config\JpaUtil.java
-D:\CNPM\project\backend\src\main\java\com\university\core\config\RestApplication.java
 D:\CNPM\project\backend\src\main\java\com\university\core\filter\AppSecurityContext.java
 D:\CNPM\project\backend\src\main\java\com\university\core\filter\AppUserPrincipal.java
 D:\CNPM\project\backend\src\main\java\com\university\core\filter\AuthFilter.java
@@ -69,6 +68,7 @@ D:\CNPM\project\backend\src\main\java\com\university\modules\assistant\responseD
 D:\CNPM\project\backend\src\main\java\com\university\modules\auth\AuthController.java
 D:\CNPM\project\backend\src\main\java\com\university\modules\auth\AuthRepository.java
 D:\CNPM\project\backend\src\main\java\com\university\modules\auth\AuthRepositoryImpl.java
+D:\CNPM\project\backend\src\main\java\com\university\modules\auth\AuthResult.java
 D:\CNPM\project\backend\src\main\java\com\university\modules\auth\AuthService.java
 D:\CNPM\project\backend\src\main\java\com\university\modules\auth\AuthServiceImpl.java
 D:\CNPM\project\backend\src\main\java\com\university\modules\auth\requestDTO\AdminLoginRequestDTO.java

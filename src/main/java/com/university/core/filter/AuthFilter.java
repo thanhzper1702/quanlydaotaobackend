@@ -48,6 +48,21 @@ public class AuthFilter implements ContainerRequestFilter {
         final String normalizedPath = path;
         boolean isPublic = PUBLIC_PATHS.stream().anyMatch(normalizedPath::startsWith);
         if (isPublic) {
+            // Optional authentication for public endpoints (like logout)
+            String authHeader = requestContext.getHeaderString(HttpHeaders.AUTHORIZATION);
+            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                String token = authHeader.substring(7).trim();
+                Claims claims = JwtUtil.parseToken(token);
+                if (claims != null && !"REFRESH".equalsIgnoreCase(claims.get("type", String.class))) {
+                    String cccd = claims.getSubject();
+                    String userCode = claims.get("userCode", String.class);
+                    String role = claims.get("role", String.class);
+                    String email = claims.get("email", String.class);
+
+                    AppUserPrincipal principal = new AppUserPrincipal(cccd, userCode, role, email);
+                    requestContext.setSecurityContext(new AppSecurityContext(principal, requestContext.getSecurityContext().isSecure()));
+                }
+            }
             return;
         }
 
@@ -69,6 +84,16 @@ public class AuthFilter implements ContainerRequestFilter {
                     Response.status(Response.Status.UNAUTHORIZED)
                             .type(MediaType.APPLICATION_JSON)
                             .entity(ApiResponse.error(Response.Status.UNAUTHORIZED.getStatusCode(), "Invalid or expired JWT token"))
+                            .build()
+            );
+            return;
+        }
+
+        if ("REFRESH".equalsIgnoreCase(claims.get("type", String.class))) {
+            requestContext.abortWith(
+                    Response.status(Response.Status.UNAUTHORIZED)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(ApiResponse.error(Response.Status.UNAUTHORIZED.getStatusCode(), "Invalid access token"))
                             .build()
             );
             return;

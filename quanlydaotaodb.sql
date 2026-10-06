@@ -39,6 +39,7 @@ CREATE TABLE NguoiDung (
     soDienThoai VARCHAR(15),
     diaChi VARCHAR(255),
     matKhauHashed VARCHAR(255) NOT NULL,
+    refreshToken TEXT,
     deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 

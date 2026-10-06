@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * JWT Utility for JJWT 0.12.x.
@@ -37,6 +38,14 @@ public final class JwtUtil {
     }
 
     private JwtUtil() {
+    }
+
+    public static long getAccessTokenExpiration() {
+        return ACCESS_TOKEN_EXPIRATION;
+    }
+
+    public static long getRefreshTokenExpiration() {
+        return REFRESH_TOKEN_EXPIRATION;
     }
 
     public static String generateAccessToken(String subject, Map<String, Object> claims) {
@@ -65,6 +74,7 @@ public final class JwtUtil {
         Date expiryDate = new Date(now.getTime() + REFRESH_TOKEN_EXPIRATION);
 
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(subject)
                 .claim("type", "REFRESH")
                 .issuedAt(now)

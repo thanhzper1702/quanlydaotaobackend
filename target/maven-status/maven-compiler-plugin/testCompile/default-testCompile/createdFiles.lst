@@ -1,2 +1,11 @@
-com\academic\TestConnection.class
+com\academic\AuthServiceTest.class
 com\academic\MetamodelTest.class
+com\academic\FilterSecurityTest$MockRequestContext.class
+com\academic\AuthControllerTest.class
+com\academic\FilterSecurityTest.class
+com\academic\TestConnection.class
+com\academic\AuthControllerTest$MockAuthService.class
+com\academic\FilterSecurityTest$MockUriInfo.class
+com\academic\FilterSecurityTest$MockRequestContext$1.class
+com\academic\AuthServiceTest$FakeAuthRepository.class
+com\academic\JpaRefreshTokenIntegrationTest.class

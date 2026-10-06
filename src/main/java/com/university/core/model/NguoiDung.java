@@ -36,6 +36,9 @@ public class NguoiDung extends BaseEntity {
     @Column(name = "matKhauHashed", length = 255, nullable = false)
     private String matKhauHashed;
 
+    @Column(name = "refreshToken", columnDefinition = "TEXT")
+    private String refreshToken;
+
     @Transient
     private UserRole vaiTro;
 
@@ -112,6 +115,14 @@ public class NguoiDung extends BaseEntity {
 
     public void setMatKhauHashed(String matKhauHashed) {
         this.matKhauHashed = matKhauHashed;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     // Compatibility aliases

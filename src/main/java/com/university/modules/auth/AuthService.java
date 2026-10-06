@@ -1,15 +1,21 @@
 package com.university.modules.auth;
-import com.university.modules.auth.requestDTO.*;
-import com.university.modules.auth.responseDTO.*;
 
+import com.university.modules.auth.requestDTO.AdminLoginRequestDTO;
+import com.university.modules.auth.requestDTO.LoginRequestDTO;
+import com.university.modules.auth.responseDTO.AdminLoginResponseDTO;
+import com.university.modules.auth.responseDTO.LoginResponseDTO;
+import com.university.modules.auth.responseDTO.LogoutResponseDTO;
+import com.university.modules.auth.responseDTO.RefreshTokenResponseDTO;
 
 public interface AuthService {
 
-    LoginResponseDTO login(LoginRequestDTO request);
+    AuthResult<LoginResponseDTO> login(LoginRequestDTO request);
 
-    AdminLoginResponseDTO adminLogin(AdminLoginRequestDTO request);
+    AuthResult<AdminLoginResponseDTO> adminLogin(AdminLoginRequestDTO request);
 
-    LogoutResponseDTO logout(String token);
+    AuthResult<LogoutResponseDTO> logout(String authHeader, String cookieRefreshToken);
 
-    RefreshTokenResponseDTO refreshToken(String refreshToken);
+    AuthResult<LogoutResponseDTO> logout(String token);
+
+    AuthResult<RefreshTokenResponseDTO> refreshToken(String refreshToken);
 }

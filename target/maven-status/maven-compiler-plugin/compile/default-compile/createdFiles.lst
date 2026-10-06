@@ -1,4 +1,3 @@
-com\university\core\config\RestApplication.class
 com\university\modules\headoffice\HeadOfficeServiceImpl.class
 com\university\modules\assistant\responseDTO\AssistantClassRequestResponseDTO.class
 com\university\core\model\enums\TrangThaiHocPhan.class
@@ -10,6 +9,7 @@ com\university\core\model\LichHoc.class
 com\university\core\model\SinhVienUuTien.class
 com\university\modules\notification\NotificationService.class
 com\university\modules\assistant\AssistantService.class
+com\university\modules\auth\responseDTO\LoginResponseDTO$StudentUserDTO.class
 com\university\modules\lecturer\requestDTO\UpdateGradesRequestDTO.class
 com\university\modules\student\StudentRepositoryImpl.class
 com\university\core\config\EnvironmentLoader.class
@@ -116,8 +116,10 @@ com\university\modules\assistant\requestDTO\OpenRegistrationPeriodRequestDTO.cla
 com\university\modules\profile\responseDTO\ChangePasswordResponseDTO.class
 com\university\core\filter\CorsFilter.class
 com\university\modules\headoffice\responseDTO\HeadOfficeLecturerResponseDTO.class
+com\university\modules\auth\AuthResult.class
 com\university\modules\lecturer\responseDTO\UpdateAttendanceResponseDTO.class
 com\university\core\model\enums\TrangThaiYeuCau.class
+com\university\modules\auth\responseDTO\AdminLoginResponseDTO$AdminUserDTO.class
 com\university\modules\profile\responseDTO\UserProfileResponseDTO.class
 com\university\modules\lecturer\requestDTO\UpdateAttendanceRequestDTO.class
 com\university\modules\assistant\requestDTO\AssignLecturerRequestDTO.class

@@ -9,18 +9,20 @@ import java.util.List;
 public class ApiResponse<T> {
 
     private int status;
-    private boolean success;
+    private Boolean success;
     private String message;
+
+    @JsonInclude(JsonInclude.Include.ALWAYS)
     private T data;
+
+    private Object meta;
     private List<String> errors;
     private LocalDateTime timestamp;
 
     public ApiResponse() {
-        this.timestamp = LocalDateTime.now();
     }
 
     public ApiResponse(int status, boolean success, String message, T data) {
-        this();
         this.status = status;
         this.success = success;
         this.message = message;
@@ -42,6 +44,12 @@ public class ApiResponse<T> {
 
     public static <T> ApiResponse<T> success(int status, String message, T data) {
         return new ApiResponse<>(status, true, message, data);
+    }
+
+    public static <T> ApiResponse<T> success(int status, String message, T data, Object meta) {
+        ApiResponse<T> resp = new ApiResponse<>(status, true, message, data);
+        resp.setMeta(meta);
+        return resp;
     }
 
     public static <T> ApiResponse<T> error(int status, String message) {
@@ -90,6 +98,14 @@ public class ApiResponse<T> {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    public Object getMeta() {
+        return meta;
+    }
+
+    public void setMeta(Object meta) {
+        this.meta = meta;
     }
 
     public List<String> getErrors() {

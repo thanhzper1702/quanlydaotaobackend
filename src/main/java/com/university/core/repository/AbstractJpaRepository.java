@@ -34,12 +34,20 @@ public abstract class AbstractJpaRepository<T, ID extends Serializable> implemen
     }
 
     protected void executeInTransaction(Consumer<EntityManager> action) {
+        executeInTransaction(em -> {
+            action.accept(em);
+            return null;
+        });
+    }
+
+    protected <R> R executeInTransaction(Function<EntityManager, R> action) {
         EntityManager em = JpaUtil.getEntityManager();
         EntityTransaction tx = em.getTransaction();
         try {
             tx.begin();
-            action.accept(em);
+            R result = action.apply(em);
             tx.commit();
+            return result;
         } catch (Exception e) {
             if (tx.isActive()) {
                 tx.rollback();
@@ -71,14 +79,17 @@ public abstract class AbstractJpaRepository<T, ID extends Serializable> implemen
 
     @Override
     public T save(T entity) {
-        executeInTransaction(em -> em.persist(entity));
+        executeInTransaction(em -> {
+            em.persist(entity);
+        });
         return entity;
     }
 
     @Override
     public T update(T entity) {
-        executeInTransaction(em -> em.merge(entity));
-        return entity;
+        return executeInTransaction(em -> {
+            return em.merge(entity);
+        });
     }
 
     @Override
