@@ -1,21 +1,18 @@
 package com.university.modules.student;
-import com.university.modules.student.requestDTO.*;
-import com.university.modules.student.responseDTO.*;
-
 
 public interface StudentService {
 
-    StudentGradeResponseDTO getGrades(String maSV);
+    StudentResponse.StudentGradeResponse getGrades(String maSV);
 
-    StudentScheduleResponseDTO getSchedule(String maSV, String maHocKy);
+    StudentResponse.StudentScheduleResponse getSchedule(String maSV, String maHocKy);
 
-    OpenedEnrollingClass getOpenClasses(String maHP, String keyword, int page, int limit);
+    StudentResponse.OpenedEnrollingClass getOpenClasses(String maHP, String keyword, int page, int limit);
 
-    RegisteredClassResponseDTO getRegisteredClasses(String maSV);
+    StudentResponse.RegisteredClassResponse getRegisteredClasses(String maSV);
 
-    EnrollCourseResponseDTO enrollCourse(String maSV, EnrollCourseRequestDTO request);
+    StudentResponse.EnrollCourseResponse enrollCourse(String maSV, StudentRequest.EnrollCourseRequest request);
 
-    CancelEnrollmentResponseDTO cancelEnrollment(String maSV, Long maHoSo);
+    StudentResponse.CancelEnrollmentResponse cancelEnrollment(String maSV, Long maHoSo);
 
-    OpenClassRequestResponseDTO requestOpenCourse(String maSV, OpenClassRequestRequestDTO request);
+    StudentResponse.OpenClassRequestResponse requestOpenCourse(String maSV, StudentRequest.OpenClassRequestRequest request);
 }

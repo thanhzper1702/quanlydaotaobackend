@@ -1,5 +1,6 @@
 package com.university.modules.student;
 
+import com.university.core.model.HocPhan;
 import com.university.core.model.HoSoHocPhan;
 import com.university.core.model.LichHoc;
 import com.university.core.model.LopHocPhan;
@@ -13,11 +14,17 @@ public interface StudentRepository extends GenericRepository<SinhVien, String> {
 
     Optional<SinhVien> findByMaSV(String maSV);
 
+    Optional<HocPhan> findHocPhanByMaHP(String maHP);
+
+    String findPhongHocByMaLHP(String maLHP);
+
     List<LopHocPhan> findOpenClasses(String maHocKy, String keyword, int page, int limit);
 
     long countOpenClasses(String maHocKy, String keyword);
 
     Optional<LopHocPhan> findClassByMaLHP(String maLHP);
+
+    LopHocPhan updateClass(LopHocPhan lhp);
 
     List<HoSoHocPhan> findRegisteredClasses(String maSV);
 
