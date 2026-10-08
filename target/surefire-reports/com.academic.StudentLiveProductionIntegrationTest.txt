@@ -1,0 +1,42 @@
+-------------------------------------------------------------------------------
+Test set: com.academic.StudentLiveProductionIntegrationTest
+-------------------------------------------------------------------------------
+Tests run: 8, Failures: 2, Errors: 2, Skipped: 0, Time elapsed: 4.077 s <<< FAILURE! -- in com.academic.StudentLiveProductionIntegrationTest
+com.academic.StudentLiveProductionIntegrationTest.test02_EnrollCourse_Success -- Time elapsed: 0.880 s <<< ERROR!
+java.lang.ClassCastException: class com.university.modules.student.StudentResponse$EnrollCourseResponse cannot be cast to class com.university.modules.student.StudentResponse$EnrollCourseResponseDTO (com.university.modules.student.StudentResponse$EnrollCourseResponse and com.university.modules.student.StudentResponse$EnrollCourseResponseDTO are in unnamed module of loader 'app')
+	at com.academic.StudentLiveProductionIntegrationTest.test02_EnrollCourse_Success(StudentLiveProductionIntegrationTest.java:265)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+
+com.academic.StudentLiveProductionIntegrationTest.test06_GetGrades -- Time elapsed: 0.004 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: generatedMaHoSo pháº£i tá»“n táº¡i tá»« test02 ==> expected: not <null>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertNotNull.failNull(AssertNotNull.java:49)
+	at org.junit.jupiter.api.AssertNotNull.assertNotNull(AssertNotNull.java:35)
+	at org.junit.jupiter.api.Assertions.assertNotNull(Assertions.java:312)
+	at com.academic.StudentLiveProductionIntegrationTest.test06_GetGrades(StudentLiveProductionIntegrationTest.java:364)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+
+com.academic.StudentLiveProductionIntegrationTest.test07_RequestOpenCourse -- Time elapsed: 0.450 s <<< ERROR!
+java.lang.ClassCastException: class com.university.modules.student.StudentResponse$OpenClassRequestResponse cannot be cast to class com.university.modules.student.StudentResponse$OpenClassRequestResponseDTO (com.university.modules.student.StudentResponse$OpenClassRequestResponse and com.university.modules.student.StudentResponse$OpenClassRequestResponseDTO are in unnamed module of loader 'app')
+	at com.academic.StudentLiveProductionIntegrationTest.test07_RequestOpenCourse(StudentLiveProductionIntegrationTest.java:414)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+
+com.academic.StudentLiveProductionIntegrationTest.test08_CancelEnrollment -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: generatedMaHoSo pháº£i tá»“n táº¡i tá»« test02 ==> expected: not <null>
+	at org.junit.jupiter.api.AssertionFailureBuilder.build(AssertionFailureBuilder.java:152)
+	at org.junit.jupiter.api.AssertionFailureBuilder.buildAndThrow(AssertionFailureBuilder.java:132)
+	at org.junit.jupiter.api.AssertNotNull.failNull(AssertNotNull.java:49)
+	at org.junit.jupiter.api.AssertNotNull.assertNotNull(AssertNotNull.java:35)
+	at org.junit.jupiter.api.Assertions.assertNotNull(Assertions.java:312)
+	at com.academic.StudentLiveProductionIntegrationTest.test08_CancelEnrollment(StudentLiveProductionIntegrationTest.java:440)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:565)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1604)
+
