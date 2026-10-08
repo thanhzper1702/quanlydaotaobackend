@@ -1,5 +1,6 @@
 package com.university.modules.profile;
 
+import com.university.core.common.ApiResponse;
 import com.university.core.common.BaseController;
 import com.university.modules.profile.requestDTO.ChangePasswordRequestDTO;
 import com.university.modules.profile.responseDTO.UserProfileResponseDTO;
@@ -32,19 +33,19 @@ public class ProfileController extends BaseController {
 
             if ((cccd == null || cccd.isBlank()) && (userCode == null || userCode.isBlank())) {
                 return Response.status(Response.Status.UNAUTHORIZED)
-                        .entity(ProfileApiResponse.error(401, "Người dùng chưa được xác thực hoặc phiên đăng nhập đã hết hạn"))
+                        .entity(ApiResponse.error(401, "Người dùng chưa được xác thực hoặc phiên đăng nhập đã hết hạn"))
                         .build();
             }
 
             UserProfileResponseDTO profile = profileService.getProfile(cccd, userCode, role);
-            return Response.ok(ProfileApiResponse.success(200, "Thông tin người dùng chi tiết", profile)).build();
+            return Response.ok(ApiResponse.success(200, "Thông tin người dùng chi tiết", profile)).build();
         } catch (ProfileBusinessException e) {
             return Response.status(e.getStatusCode())
-                    .entity(ProfileApiResponse.error(e.getStatusCode(), e.getMessage()))
+                    .entity(ApiResponse.error(e.getStatusCode(), e.getMessage()))
                     .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(ProfileApiResponse.error(500, "Lỗi máy chủ nội bộ: " + e.getMessage()))
+                    .entity(ApiResponse.error(500, "Lỗi máy chủ nội bộ: " + e.getMessage()))
                     .build();
         }
     }
@@ -60,19 +61,19 @@ public class ProfileController extends BaseController {
 
             if (cccd == null || cccd.isBlank()) {
                 return Response.status(Response.Status.UNAUTHORIZED)
-                        .entity(ProfileApiResponse.error(401, "Người dùng chưa được xác thực hoặc phiên đăng nhập đã hết hạn"))
+                        .entity(ApiResponse.error(401, "Người dùng chưa được xác thực hoặc phiên đăng nhập đã hết hạn"))
                         .build();
             }
 
             profileService.changePassword(cccd, request);
-            return Response.ok(ProfileApiResponse.success(200, "Đổi mật khẩu thành công", null)).build();
+            return Response.ok(ApiResponse.success(200, "Đổi mật khẩu thành công", null)).build();
         } catch (ProfileBusinessException e) {
             return Response.status(e.getStatusCode())
-                    .entity(ProfileApiResponse.error(e.getStatusCode(), e.getMessage()))
+                    .entity(ApiResponse.error(e.getStatusCode(), e.getMessage()))
                     .build();
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
-                    .entity(ProfileApiResponse.error(500, "Lỗi máy chủ nội bộ: " + e.getMessage()))
+                    .entity(ApiResponse.error(500, "Lỗi máy chủ nội bộ: " + e.getMessage()))
                     .build();
         }
     }

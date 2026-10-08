@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.university.core.model.*;
 import com.university.core.util.PasswordUtil;
+import com.university.core.common.ApiResponse;
 import com.university.modules.profile.*;
 import com.university.modules.profile.requestDTO.ChangePasswordRequestDTO;
 import com.university.modules.profile.responseDTO.UserProfileResponseDTO;
@@ -330,7 +331,7 @@ public class ProfileServiceAndControllerTest {
         Response response = controller.getProfile();
 
         assertEquals(200, response.getStatus());
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
         assertEquals(200, body.getStatus());
         assertEquals("Thông tin người dùng chi tiết", body.getMessage());
 
@@ -353,7 +354,7 @@ public class ProfileServiceAndControllerTest {
         Response response = controller.getProfile();
 
         assertEquals(200, response.getStatus());
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
         assertEquals(200, body.getStatus());
 
         UserProfileResponseDTO profile = (UserProfileResponseDTO) body.getData();
@@ -373,7 +374,7 @@ public class ProfileServiceAndControllerTest {
         Response response = controller.getProfile();
 
         assertEquals(200, response.getStatus());
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
         assertEquals(200, body.getStatus());
 
         UserProfileResponseDTO profile = (UserProfileResponseDTO) body.getData();
@@ -392,7 +393,7 @@ public class ProfileServiceAndControllerTest {
         Response response = controller.getProfile();
 
         assertEquals(200, response.getStatus());
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
         assertEquals(200, body.getStatus());
 
         UserProfileResponseDTO profile = (UserProfileResponseDTO) body.getData();
@@ -413,7 +414,7 @@ public class ProfileServiceAndControllerTest {
         Response response = controller.changePassword(req);
 
         assertEquals(200, response.getStatus());
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
         assertEquals(200, body.getStatus());
         assertEquals("Đổi mật khẩu thành công", body.getMessage());
         assertNull(body.getData());
@@ -433,7 +434,7 @@ public class ProfileServiceAndControllerTest {
         Response response = controller.changePassword(req);
 
         assertEquals(400, response.getStatus());
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
         assertEquals(400, body.getStatus());
         assertEquals("Mật khẩu cũ không đúng", body.getMessage());
         assertNull(body.getData());
@@ -463,7 +464,7 @@ public class ProfileServiceAndControllerTest {
         Response response = controller.changePassword(req);
 
         assertEquals(400, response.getStatus());
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
         assertEquals(400, body.getStatus());
         assertEquals("Mật khẩu mới phải có ít nhất 6 ký tự", body.getMessage());
     }
@@ -477,7 +478,7 @@ public class ProfileServiceAndControllerTest {
         Response response = controller.changePassword(req);
 
         assertEquals(400, response.getStatus());
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
         assertEquals(400, body.getStatus());
         assertEquals("Mật khẩu mới không được trùng với mật khẩu cũ", body.getMessage());
     }
@@ -495,17 +496,17 @@ public class ProfileServiceAndControllerTest {
     }
 
     @Test
-    @DisplayName("Test 11: Kiểm thử cấu trúc JSON serialization không có trường 'success', khớp chuẩn APIRoute.md")
+    @DisplayName("Test 11: Kiểm thử cấu trúc JSON serialization có trường 'success' chuẩn core ApiResponse")
     void testJsonPayloadMatchesApiRouteContract() throws Exception {
         controller.setMockContext("001203000001", "B21DCCN001", "SINHVIEN");
         Response response = controller.getProfile();
-        ProfileApiResponse<?> body = (ProfileApiResponse<?>) response.getEntity();
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
 
         String json = objectMapper.writeValueAsString(body);
-        System.out.println("Student Profile JSON (No success field): " + json);
+        System.out.println("Student Profile JSON (With success field): " + json);
 
         assertTrue(json.contains("\"status\":200"));
-        assertFalse(json.contains("\"success\""), "JSON output must NOT contain 'success' field!");
+        assertTrue(json.contains("\"success\":true"), "JSON output must contain 'success' field!");
         assertTrue(json.contains("\"maDinhDanh\":\"B21DCCN001\""));
         assertTrue(json.contains("\"hoTen\":\"Nguyễn Văn An\""));
         assertTrue(json.contains("\"role\":\"SINHVIEN\""));
@@ -514,22 +515,22 @@ public class ProfileServiceAndControllerTest {
         assertTrue(json.contains("\"gpaHienTai\":3.43"));
         assertFalse(json.contains("\"thongTinCanBo\""));
 
-        // Kiểm tra JSON khi đổi mật khẩu thành công cũng KHÔNG có 'success'
+        // Kiểm tra JSON khi đổi mật khẩu thành công có 'success': true
         Response respPass = controller.changePassword(new ChangePasswordRequestDTO("123456", "NewPass@456"));
         String jsonPass = objectMapper.writeValueAsString(respPass.getEntity());
-        System.out.println("Change Password JSON (No success field): " + jsonPass);
+        System.out.println("Change Password JSON (With success field): " + jsonPass);
 
         assertTrue(jsonPass.contains("\"status\":200"));
-        assertFalse(jsonPass.contains("\"success\""), "JSON output must NOT contain 'success' field!");
+        assertTrue(jsonPass.contains("\"success\":true"), "JSON output must contain 'success' field!");
         assertTrue(jsonPass.contains("\"data\":null"));
 
-        // Kiểm tra JSON khi đổi mật khẩu lỗi 400 cũng KHÔNG có 'success'
+        // Kiểm tra JSON khi đổi mật khẩu lỗi 400 có 'success': false
         Response respPassErr = controller.changePassword(new ChangePasswordRequestDTO("WrongPass", "NewPass@456"));
         String jsonPassErr = objectMapper.writeValueAsString(respPassErr.getEntity());
-        System.out.println("Change Password 400 JSON (No success field): " + jsonPassErr);
+        System.out.println("Change Password 400 JSON (With success field): " + jsonPassErr);
 
         assertTrue(jsonPassErr.contains("\"status\":400"));
-        assertFalse(jsonPassErr.contains("\"success\""), "JSON output must NOT contain 'success' field!");
+        assertTrue(jsonPassErr.contains("\"success\":false"), "JSON output must contain 'success' field!");
         assertTrue(jsonPassErr.contains("\"data\":null"));
     }
 }
