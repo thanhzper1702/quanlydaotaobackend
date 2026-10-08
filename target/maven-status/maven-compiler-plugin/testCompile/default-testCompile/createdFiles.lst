@@ -1,4 +1,5 @@
 com\academic\StudentLiveProductionIntegrationTest$TestLiveStudentController.class
+com\academic\NotificationServiceAndControllerTest$FakeNotificationRepository.class
 com\academic\FilterSecurityTest$MockRequestContext.class
 com\academic\FilterSecurityTest.class
 com\academic\FilterSecurityTest$MockUriInfo.class
@@ -18,3 +19,5 @@ com\academic\AuthControllerTest$MockAuthService.class
 com\academic\StudentServiceAndControllerTest.class
 com\academic\ProfileServiceAndControllerTest.class
 com\academic\AuthServiceTest$FakeAuthRepository.class
+com\academic\NotificationServiceAndControllerTest$TestNotificationController.class
+com\academic\NotificationServiceAndControllerTest.class

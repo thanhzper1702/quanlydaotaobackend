@@ -35,6 +35,7 @@ com\university\modules\student\StudentServiceImpl.class
 com\university\modules\auth\requestDTO\AdminLoginRequestDTO.class
 com\university\modules\notification\NotificationServiceImpl.class
 com\university\modules\profile\ProfileController.class
+com\university\modules\notification\responseDTO\NotificationMetaDTO.class
 com\university\modules\student\StudentServiceImpl$1.class
 com\university\core\repository\GenericRepository.class
 com\university\modules\profile\ProfileRepository.class
@@ -53,8 +54,10 @@ com\university\modules\assistant\requestDTO\UpdateClassRequestStatusRequestDTO.c
 com\university\core\util\JwtUtil.class
 com\university\modules\student\StudentResponse$CancelEnrollmentResponseDTO.class
 com\university\modules\auth\AuthRepository.class
+com\university\modules\notification\NotificationBusinessException.class
 com\university\core\model\ThongBao.class
 com\university\core\model\HocKy.class
+com\university\modules\notification\responseDTO\NotificationItemDTO.class
 com\university\core\filter\AppSecurityContext.class
 com\university\modules\lecturer\responseDTO\LecturerTeachingClassResponseDTO.class
 com\university\core\model\enums\TrangThaiLop.class
