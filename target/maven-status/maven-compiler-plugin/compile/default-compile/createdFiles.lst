@@ -129,6 +129,7 @@ com\university\modules\assistant\responseDTO\DeleteClassResponseDTO.class
 com\university\modules\assistant\responseDTO\DeleteScheduleResponseDTO.class
 com\university\modules\assistant\responseDTO\CreateClassResponseDTO.class
 com\university\modules\lecturer\responseDTO\LecturerAttendanceResponseDTO.class
+com\university\modules\profile\ProfileApiResponse.class
 com\university\modules\notification\NotificationRepository.class
 com\university\modules\student\StudentResponse$RegisteredClassResponseDTO.class
 com\university\modules\assistant\responseDTO\AssignLecturerResponseDTO.class
