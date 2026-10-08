@@ -40,8 +40,13 @@ public class NotificationServiceImpl implements NotificationService {
             limit = 100;
         }
 
-        List<ThongBao> notifications = notificationRepository.findActiveNotificationsPaginated(page, limit);
         long totalItems = notificationRepository.countActiveNotifications();
+        if (totalItems == 0) {
+            notificationRepository.seedInitialNotificationsIfEmpty();
+            totalItems = notificationRepository.countActiveNotifications();
+        }
+
+        List<ThongBao> notifications = notificationRepository.findActiveNotificationsPaginated(page, limit);
         int totalPages = limit > 0 ? (int) Math.ceil((double) totalItems / limit) : 0;
         long unreadCount = Math.min(totalItems, 3);
 

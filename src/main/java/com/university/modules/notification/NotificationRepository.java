@@ -12,4 +12,5 @@ public interface NotificationRepository extends GenericRepository<ThongBao, Long
     long countActiveNotifications();
     Optional<ThongBao> findActiveById(Long id);
     void softDelete(Long id);
+    void seedInitialNotificationsIfEmpty();
 }

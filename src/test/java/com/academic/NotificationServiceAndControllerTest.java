@@ -154,6 +154,20 @@ public class NotificationServiceAndControllerTest {
         public long count() {
             return storage.size();
         }
+
+        @Override
+        public void seedInitialNotificationsIfEmpty() {
+            if (countActiveNotifications() == 0) {
+                ThongBao tb1 = new ThongBao();
+                tb1.setMaThongBao(idSeq.incrementAndGet());
+                tb1.setTieuDe("Thông báo đăng ký học phần Học kỳ 1");
+                tb1.setNoiDung("Sinh viên khóa 2021, 2022 thực hiện đăng ký...");
+                tb1.setPhamVi("TOAN_TRUONG");
+                tb1.setDeleted(false);
+                tb1.setNgayTao(LocalDateTime.now().minusHours(2));
+                storage.put(tb1.getMaThongBao(), tb1);
+            }
+        }
     }
 
     @BeforeEach
@@ -441,5 +455,42 @@ public class NotificationServiceAndControllerTest {
 
         Response response = controller.deleteNotification(9999L);
         assertEquals(404, response.getStatus());
+    }
+
+    @Test
+    @DisplayName("Route 07: GET /notifications - Role Trợ lý (TROLY) nhận danh sách thông báo có data (không bị rỗng)")
+    void testGetNotifications_RoleTroLy_ReturnsData() {
+        controller.setMockContext("001088000001", "NV001", "TROLY");
+
+        Response response = controller.getNotifications(1, 10);
+        assertEquals(200, response.getStatus());
+
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
+        assertEquals(200, body.getStatus());
+        assertTrue(body.isSuccess());
+
+        @SuppressWarnings("unchecked")
+        List<?> data = (List<?>) body.getData();
+        assertNotNull(data);
+        assertFalse(data.isEmpty(), "Data thông báo của trợ lý không được rỗng []");
+        assertEquals(2, data.size());
+    }
+
+    @Test
+    @DisplayName("Route 07: GET /notifications - Khi DB trống hoàn toàn, hệ thống tự động khởi tạo dữ liệu mẫu và trả về data")
+    void testGetNotifications_WhenEmpty_AutoSeedsData() {
+        fakeRepository.storage.clear(); // DB trống hoàn toàn
+        controller.setMockContext("001088000001", "NV001", "TROLY");
+
+        Response response = controller.getNotifications(1, 10);
+        assertEquals(200, response.getStatus());
+
+        ApiResponse<?> body = (ApiResponse<?>) response.getEntity();
+        assertEquals(200, body.getStatus());
+
+        @SuppressWarnings("unchecked")
+        List<?> data = (List<?>) body.getData();
+        assertNotNull(data);
+        assertFalse(data.isEmpty(), "Khi DB trống, phải tự động seed thông báo mẫu để không trả về data []");
     }
 }
