@@ -39,7 +39,7 @@
 ---
 
 ## 3. CẤU TRÚC MÃ NGUỒN MODULE PROFILE
-
+### 3.1. Tổng quan cấu trúc module
 ```text
 com.university.modules.profile/
 ├── ProfileController.java          # REST API Controller kế thừa BaseController
@@ -57,18 +57,18 @@ com.university.modules.profile/
 
 ---
 
-## 4. KẾT QUẢ KIỂM THỬ TỰ ĐỘNG (UNIT TESTS)
-
-Bộ kiểm thử `ProfileServiceAndControllerTest` đạt tỷ lệ **11/11 PASSED (100%)**:
-
-1. `testGetStudentProfileSuccess`: Lấy hồ sơ sinh viên kèm tính toán GPA hệ 4 (`3.43`) và số tín chỉ tích lũy (`7`) đạt chuẩn.
-2. `testGetLecturerProfileSuccess`: Lấy hồ sơ giảng viên hiển thị học vị ("Tiến sĩ") và khoa ("CNTT 1").
-3. `testGetAssistantProfileSuccess`: Lấy hồ sơ trợ lý hiển thị ngày bắt đầu làm việc.
-4. `testGetHeadOfficeProfileSuccess`: Lấy hồ sơ trưởng phòng hiển thị nhiệm kỳ ("2021-2026").
-5. `testChangePasswordSuccess`: Đổi mật khẩu thành công, kiểm tra mật khẩu đã được mã hóa BCrypt trong CSDL.
-6. `testChangePasswordWrongOldPassword`: Báo lỗi HTTP `400` khi nhập sai mật khẩu cũ.
-7. `testChangePasswordEmptyFields`: Báo lỗi HTTP `400` khi bỏ trống mật khẩu cũ hoặc mới.
-8. `testChangePasswordTooShort`: Báo lỗi HTTP `400` khi mật khẩu mới dưới 6 ký tự.
-9. `testChangePasswordSameAsOld`: Báo lỗi HTTP `400` khi mật khẩu mới trùng mật khẩu cũ.
-10. `testUnauthenticatedAccess`: Báo lỗi HTTP `401 Unauthorized` khi người dùng chưa đăng nhập.
-11. `testJsonPayloadMatchesApiRouteContract`: Xác nhận chuỗi JSON Response chuẩn 100% với hợp đồng trong `APIRoute.md`.
+### 3.2. File mới được bổ sung so với trước khi bắt đầu code và lý do cần thiết:
+Trước khi bắt đầu code module Profile, khung dự án ban đầu chỉ có sẵn các file sườn cơ bản (`Controller`, `Service`, `Repository`, `ChangePasswordRequestDTO`, `ChangePasswordResponseDTO`, `UserProfileResponseDTO`).
+Trong quá trình triển khai, file mới duy nhất được tạo thêm trong mã nguồn module là:
+- **`ProfileBusinessException.java`** (`src/main/java/com/university/modules/profile/ProfileBusinessException.java`)
+#### Chi tiết lý do sinh ra `ProfileBusinessException.java`:
+1. **Quản lý mã trạng thái HTTP (Status Code) linh hoạt và chính xác:**
+   - Exception này kế thừa `RuntimeException` và mang theo thuộc tính `statusCode` (ví dụ: `400 Bad Request`, `401 Unauthorized`, `404 Not Found`) cùng `message` chi tiết.
+   - Giúp tầng Service (`ProfileServiceImpl`) khi phát hiện vi phạm nghiệp vụ (như nhập sai mật khẩu cũ, mật khẩu mới dưới 6 ký tự, mật khẩu mới trùng mật khẩu cũ, không tìm thấy người dùng) có thể ném ngoại lệ kèm đúng HTTP status code tương ứng.
+   - Tầng Controller (`ProfileController`) bắt ngoại lệ này và đóng gói trực tiếp vào response JSON theo đúng envelope chuẩn `{ status, success: false, message, data: null, meta: null }` mà không cần các cấu trúc `if-else` phức tạp.
+2. **Tuân thủ nghiêm ngặt ranh giới phân hệ (Module Boundaries) và quy tắc không sửa `core`:**
+   - Trong toàn bộ dự án, mỗi phân hệ đều sở hữu exception nghiệp vụ độc lập riêng (như `StudentBusinessException` ở module Student, `NotificationBusinessException` ở module Notification).
+   - Phân hệ dùng chung `core` (`com.university.core.common`) không cung cấp sẵn lớp exception dùng chung mang trường HTTP status code tùy biến. Theo quy định làm việc nhóm, tuyệt đối không chỉnh sửa mã nguồn chung trong `core` để tránh rủi ro xung đột hoặc ảnh hưởng đến các phân hệ khác.
+   - Do đó, việc tạo riêng file `ProfileBusinessException.java` nội bộ bên trong `com.university.modules.profile` là giải pháp kiến trúc sạch (Clean Architecture), đảm bảo tính đóng gói độc lập 100% của module.
+*(Lưu ý: Để tránh sinh thêm file thừa trong thư mục `responseDTO/`, hai DTO chi tiết `ThongTinHocVuDTO` và `ThongTinCanBoDTO` được đóng gói dưới dạng static inner class ngay bên trong file `UserProfileResponseDTO.java` có sẵn).*
+---
