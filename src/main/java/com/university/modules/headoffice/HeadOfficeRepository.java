@@ -3,6 +3,8 @@ package com.university.modules.headoffice;
 import com.university.core.model.GiangVien;
 import com.university.core.model.HocKy;
 import com.university.core.model.HocPhan;
+import com.university.core.model.HoSoHocPhan;
+import com.university.core.model.LopHocPhan;
 import com.university.core.model.SinhVien;
 import com.university.core.model.TruongPhongDaoTao;
 import com.university.core.model.YeuCauMoLop;
@@ -21,11 +23,21 @@ public interface HeadOfficeRepository extends GenericRepository<TruongPhongDaoTa
 
     HocPhan saveCourse(HocPhan course);
 
+    boolean softDeleteCourseIfUnused(String maHP);
+
     List<HocKy> findAllSemesters();
 
     Optional<HocKy> findSemesterById(String maHocKy);
 
     HocKy saveSemester(HocKy semester);
+
+    List<LopHocPhan> findClasses(String maHocKy, int page, int limit);
+
+    long countClasses(String maHocKy);
+
+    Optional<LopHocPhan> findClassById(String maLHP);
+
+    List<HoSoHocPhan> findClassGrades(String maLHP);
 
     List<GiangVien> findLecturers(String khoa, int page, int limit);
 
@@ -40,6 +52,20 @@ public interface HeadOfficeRepository extends GenericRepository<TruongPhongDaoTa
     long countTotalLecturers();
 
     long countTotalClassesInSemester(String maHocKy);
+
+    long countTotalClasses();
+
+    long countFailedGrades(String maHocKy);
+
+    long countSuspendedExamRecords(String maHocKy);
+
+    List<Object[]> countStudentsByNienKhoa();
+
+    List<Object[]> countStudentsByKhoa();
+
+    List<Object[]> countStudentsByGender();
+
+    List<Object[]> countAcademicResults(String maHocKy);
 
     long countTotalCourses();
 
