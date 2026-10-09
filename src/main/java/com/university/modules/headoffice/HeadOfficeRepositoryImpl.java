@@ -201,6 +201,15 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
     }
 
     @Override
+    public long countClassesByLecturer(String maNV) {
+        return execute(em -> em.createQuery(
+                "SELECT COUNT(l) FROM LopHocPhan l WHERE l.giangVien.maNV = :maNV AND l.deleted = false",
+                Long.class)
+                .setParameter("maNV", maNV)
+                .getSingleResult());
+    }
+
+    @Override
     public List<SinhVien> findStudents(String nienKhoa, String khoa, int page, int limit) {
         return execute(em -> {
             StringBuilder sb = new StringBuilder("SELECT s FROM SinhVien s JOIN FETCH s.nguoiDung WHERE s.deleted = false");

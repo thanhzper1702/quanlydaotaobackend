@@ -149,7 +149,14 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
         validatePage(page, limit);
         long total = repository.countLecturers(khoa);
         var items = repository.findLecturers(khoa, page, limit).stream()
-            .map(lecturer -> new HeadOfficeLecturerResponseDTO.LecturerItem(lecturer.getMaNV(), lecturer.getHoTen(), lecturer.getHocVi(), lecturer.getKhoa(), lecturer.getEmail()))
+            .map(lecturer -> new HeadOfficeLecturerResponseDTO.LecturerItem(
+                    lecturer.getMaNV(),
+                    lecturer.getHoTen(),
+                    lecturer.getHocVi(),
+                    lecturer.getKhoa(),
+                    lecturer.getEmail(),
+                    lecturer.getAnhThe(),
+                    Math.toIntExact(repository.countClassesByLecturer(lecturer.getMaNV()))))
             .collect(Collectors.toList());
         return new HeadOfficeLecturerResponseDTO(items, page, limit, total);
     }
@@ -159,7 +166,14 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
         validatePage(page, limit);
         long total = repository.countStudents(nienKhoa, khoa);
         var items = repository.findStudents(nienKhoa, khoa, page, limit).stream()
-            .map(student -> new HeadOfficeStudentResponseDTO.StudentItem(student.getMaSV(), student.getHoTen(), student.getGioiTinh(), student.getNienKhoa(), student.getKhoa(), student.getChuyenNganh(), student.getEmail()))
+            .map(student -> new HeadOfficeStudentResponseDTO.StudentItem(
+                    student.getMaSV(),
+                    student.getHoTen(),
+                    student.getGioiTinh(),
+                    student.getNienKhoa(),
+                    student.getKhoa(),
+                    student.getChuyenNganh(),
+                    student.getAnhThe()))
             .collect(Collectors.toList());
         return new HeadOfficeStudentResponseDTO(items, page, limit, total);
     }

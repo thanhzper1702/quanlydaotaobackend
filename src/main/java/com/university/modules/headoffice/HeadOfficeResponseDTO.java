@@ -82,14 +82,18 @@ public final class HeadOfficeResponseDTO {
         public long getTotalElements() { return totalElements; }
         public int getTotalPages() { return totalPages; }
         public static class LecturerItem {
-            private String maNV; private String hoTen; private String hocVi; private String khoa; private String email;
+            private String maNV; private String hoTen; private String hocVi; private String khoa; private String email; private String anhThe; private Integer soLopPhuTrach;
             public LecturerItem() { }
-            public LecturerItem(String maNV, String hoTen, String hocVi, String khoa, String email) { this.maNV = maNV; this.hoTen = hoTen; this.hocVi = hocVi; this.khoa = khoa; this.email = email; }
+            public LecturerItem(String maNV, String hoTen, String hocVi, String khoa, String email, String anhThe, Integer soLopPhuTrach) {
+                this.maNV = maNV; this.hoTen = hoTen; this.hocVi = hocVi; this.khoa = khoa; this.email = email; this.anhThe = anhThe; this.soLopPhuTrach = soLopPhuTrach;
+            }
             public String getMaNV() { return maNV; }
             public String getHoTen() { return hoTen; }
             public String getHocVi() { return hocVi; }
             public String getKhoa() { return khoa; }
             public String getEmail() { return email; }
+            public String getAnhThe() { return anhThe; }
+            public Integer getSoLopPhuTrach() { return soLopPhuTrach; }
         }
     }
 
@@ -103,16 +107,18 @@ public final class HeadOfficeResponseDTO {
         public long getTotalElements() { return totalElements; }
         public int getTotalPages() { return totalPages; }
         public static class StudentItem {
-            private String maSV; private String hoTen; private String gioiTinh; private String nienKhoa; private String khoa; private String chuyenNganh; private String email;
+            private String maSV; private String hoTen; private String gioiTinh; private String nienKhoa; private String khoa; private String chuyenNganh; private String anhThe;
             public StudentItem() { }
-            public StudentItem(String maSV, String hoTen, String gioiTinh, String nienKhoa, String khoa, String chuyenNganh, String email) { this.maSV = maSV; this.hoTen = hoTen; this.gioiTinh = gioiTinh; this.nienKhoa = nienKhoa; this.khoa = khoa; this.chuyenNganh = chuyenNganh; this.email = email; }
+            public StudentItem(String maSV, String hoTen, String gioiTinh, String nienKhoa, String khoa, String chuyenNganh, String anhThe) {
+                this.maSV = maSV; this.hoTen = hoTen; this.gioiTinh = gioiTinh; this.nienKhoa = nienKhoa; this.khoa = khoa; this.chuyenNganh = chuyenNganh; this.anhThe = anhThe;
+            }
             public String getMaSV() { return maSV; }
             public String getHoTen() { return hoTen; }
             public String getGioiTinh() { return gioiTinh; }
             public String getNienKhoa() { return nienKhoa; }
             public String getKhoa() { return khoa; }
             public String getChuyenNganh() { return chuyenNganh; }
-            public String getEmail() { return email; }
+            public String getAnhThe() { return anhThe; }
         }
     }
 
