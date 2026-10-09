@@ -1,33 +1,41 @@
 package com.university.modules.assistant;
-import com.university.modules.assistant.requestDTO.*;
-import com.university.modules.assistant.responseDTO.*;
 
+import java.util.List;
 
 public interface AssistantService {
 
-    AssistantSemesterResponseDTO getSemesters();
+    AssistantResponses.Result<List<AssistantResponses.SemesterDTO>> getSemesters();
 
-    AssistantClassResponseDTO getClassesBySemester(String maHocKy, int page, int limit);
+    AssistantResponses.Result<List<AssistantResponses.ClassDTO>> getClassesBySemester(
+            String maHocKy, int page, int limit);
 
-    CreateClassResponseDTO createClass(String maHocKy, CreateClassRequestDTO request);
+    AssistantResponses.Result<AssistantResponses.CreateClassData> createClass(
+            String maHocKy, String maNV, AssistantRequests.CreateClassRequest request);
 
-    UpdateClassResponseDTO updateClass(String maLHP, UpdateClassRequestDTO request);
+    AssistantResponses.Result<Void> updateClass(
+            String maLHP, AssistantRequests.UpdateClassRequest request);
 
-    DeleteClassResponseDTO deleteClass(String maLHP);
+    AssistantResponses.Result<Void> deleteClass(String maLHP);
 
-    AssignLecturerResponseDTO assignLecturer(String maLHP, AssignLecturerRequestDTO request);
+    AssistantResponses.Result<Void> assignLecturer(
+            String maLHP, AssistantRequests.AssignLecturerRequest request);
 
-    OpenRegistrationPeriodResponseDTO openRegistrationPeriod(OpenRegistrationPeriodRequestDTO request);
+    AssistantResponses.Result<Void> openRegistrationPeriod(
+            AssistantRequests.OpenRegistrationPeriodRequest request);
 
-    AssistantClassStudentResponseDTO getClassStudents(String maLHP, boolean export);
+    AssistantResponses.Result<List<AssistantResponses.StudentDTO>> getClassStudents(
+            String maLHP, int page, int limit, boolean export);
 
-    AssistantScheduleResponseDTO getClassSchedules(String maLHP);
+    AssistantResponses.Result<List<AssistantResponses.ScheduleDTO>> getClassSchedules(String maLHP);
 
-    UpdateScheduleResponseDTO updateSchedule(String maLHP, UpdateScheduleRequestDTO request);
+    AssistantResponses.Result<Void> updateSchedule(
+            String maLHP, AssistantRequests.UpdateScheduleRequest request);
 
-    DeleteScheduleResponseDTO deleteSchedule(String maLHP);
+    AssistantResponses.Result<Void> deleteSchedule(String maLH);
 
-    AssistantClassRequestResponseDTO getClassRequests(String trangThai, int page, int limit);
+    AssistantResponses.Result<List<AssistantResponses.ClassRequestDTO>> getClassRequests(
+            String trangThai, int page, int limit);
 
-    UpdateClassRequestStatusResponseDTO updateClassRequestStatus(String maYeuCau, UpdateClassRequestStatusRequestDTO request);
+    AssistantResponses.Result<Void> updateClassRequestStatus(
+            String maYeuCau, AssistantRequests.UpdateClassRequestStatusRequest request);
 }

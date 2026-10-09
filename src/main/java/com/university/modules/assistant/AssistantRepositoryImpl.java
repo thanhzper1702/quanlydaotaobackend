@@ -11,11 +11,16 @@ import com.university.core.model.YeuCauMoLop;
 import com.university.core.model.enums.TrangThaiYeuCau;
 import com.university.core.repository.AbstractJpaRepository;
 import jakarta.persistence.NoResultException;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.LockModeType;
 import jakarta.persistence.TypedQuery;
 
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, String> implements AssistantRepository {
 
@@ -101,6 +106,7 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
     public List<LopHocPhan> findClassesBySemester(String maHocKy, int page, int limit) {
         return execute(em -> {
             String jpql = "SELECT l FROM LopHocPhan l JOIN FETCH l.monHoc JOIN FETCH l.hocKy " +
+                    "LEFT JOIN FETCH l.giangVien g LEFT JOIN FETCH g.nguoiDung " +
                     "WHERE l.deleted = false";
             if (maHocKy != null && !maHocKy.trim().isEmpty()) {
                 jpql += " AND l.hocKy.maHocKy = :maHocKy";
@@ -141,7 +147,8 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
             try {
                 LopHocPhan lhp = em.createQuery(
                         "SELECT l FROM LopHocPhan l JOIN FETCH l.monHoc JOIN FETCH l.hocKy " +
-                        "LEFT JOIN FETCH l.giangVien LEFT JOIN FETCH l.troLyDaoTao " +
+                        "LEFT JOIN FETCH l.giangVien g LEFT JOIN FETCH g.nguoiDung " +
+                        "LEFT JOIN FETCH l.troLyDaoTao " +
                         "WHERE l.maLHP = :maLHP AND l.deleted = false", LopHocPhan.class)
                         .setParameter("maLHP", maLHP)
                         .getSingleResult();
@@ -154,37 +161,84 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
 
     @Override
     public LopHocPhan saveClass(LopHocPhan lhp) {
-        return execute(em -> {
-            LopHocPhan existing = em.find(LopHocPhan.class, lhp.getMaLHP());
-            if (existing == null) {
-                em.persist(lhp);
-                return lhp;
-            } else {
-                return em.merge(lhp);
+        return executeInTransaction(em -> {
+            return save(em, LopHocPhan.class, lhp.getMaLHP(), lhp);
+        });
+    }
+
+    @Override
+    public LopHocPhan createClassWithSchedules(LopHocPhan lhp, List<LichHoc> schedules) {
+        return executeInTransaction(em -> {
+            if (em.find(LopHocPhan.class, lhp.getMaLHP()) != null) {
+                throw new IllegalArgumentException("Class already exists: " + lhp.getMaLHP());
             }
+            validateRoomAvailability(em, lhp, schedules, null);
+            em.persist(lhp);
+            persistSchedules(em, lhp, schedules, false);
+            return lhp;
+        });
+    }
+
+    @Override
+    public LopHocPhan updateClassWithSchedules(LopHocPhan lhp, List<LichHoc> schedules) {
+        return executeInTransaction(em -> {
+            LopHocPhan existing = em.find(LopHocPhan.class, lhp.getMaLHP(), LockModeType.PESSIMISTIC_WRITE);
+            if (existing == null || Boolean.TRUE.equals(existing.getDeleted())) {
+                throw new IllegalArgumentException("Class not found: " + lhp.getMaLHP());
+            }
+            validateRoomAvailability(em, lhp, schedules, lhp.getMaLHP());
+            LopHocPhan managed = em.merge(lhp);
+            em.createQuery("UPDATE LichHoc l SET l.deleted = true " +
+                            "WHERE l.lopHocPhan.maLHP = :maLHP AND l.deleted = false")
+                    .setParameter("maLHP", lhp.getMaLHP())
+                    .executeUpdate();
+            persistSchedules(em, managed, schedules, true);
+            return managed;
         });
     }
 
     @Override
     public void deleteClass(String maLHP) {
-        execute(em -> {
+        executeInTransaction(em -> {
             LopHocPhan lhp = em.find(LopHocPhan.class, maLHP);
-            if (lhp != null) {
+            if (lhp != null && !Boolean.TRUE.equals(lhp.getDeleted())) {
                 lhp.setDeleted(true);
-                em.merge(lhp);
             }
-            return null;
+        });
+    }
+
+    @Override
+    public boolean deleteClassWithSchedulesIfNoStudents(String maLHP) {
+        return executeInTransaction(em -> {
+            LopHocPhan lhp = em.find(LopHocPhan.class, maLHP, LockModeType.PESSIMISTIC_WRITE);
+            if (lhp == null || Boolean.TRUE.equals(lhp.getDeleted())) {
+                return false;
+            }
+            long studentCount = em.createQuery(
+                            "SELECT COUNT(h) FROM HoSoHocPhan h " +
+                                    "WHERE h.lopHocPhan.maLHP = :maLHP AND h.deleted = false", Long.class)
+                    .setParameter("maLHP", maLHP)
+                    .getSingleResult();
+            if (studentCount > 0) {
+                return false;
+            }
+            lhp.setDeleted(true);
+            em.createQuery("UPDATE LichHoc l SET l.deleted = true " +
+                            "WHERE l.lopHocPhan.maLHP = :maLHP AND l.deleted = false")
+                    .setParameter("maLHP", maLHP)
+                    .executeUpdate();
+            return true;
         });
     }
 
     @Override
     public boolean assignLecturer(String maLHP, String maGV) {
-        return execute(em -> {
+        return executeInTransaction(em -> {
             GiangVien gv = em.find(GiangVien.class, maGV);
             LopHocPhan lhp = em.find(LopHocPhan.class, maLHP);
-            if (lhp != null && gv != null) {
+            if (lhp != null && gv != null && !Boolean.TRUE.equals(lhp.getDeleted())
+                    && !Boolean.TRUE.equals(gv.getDeleted())) {
                 lhp.setGiangVien(gv);
-                em.merge(lhp);
                 return true;
             }
             return false;
@@ -193,12 +247,11 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
 
     @Override
     public boolean updateRegistrationPeriod(String maLHP, OffsetDateTime bddk, OffsetDateTime ktdk) {
-        return execute(em -> {
+        return executeInTransaction(em -> {
             LopHocPhan lhp = em.find(LopHocPhan.class, maLHP);
-            if (lhp != null) {
+            if (lhp != null && !Boolean.TRUE.equals(lhp.getDeleted())) {
                 lhp.setThoiGianBDDK(bddk);
                 lhp.setThoiGianKTDK(ktdk);
-                em.merge(lhp);
                 return true;
             }
             return false;
@@ -206,18 +259,102 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
     }
 
     @Override
-    public List<HoSoHocPhan> findStudentsByClass(String maLHP) {
+    public void updateRegistrationPeriods(
+            List<String> classIds, OffsetDateTime bddk, OffsetDateTime ktdk) {
+        executeInTransaction(em -> {
+            if (bddk == null || ktdk == null || !bddk.isBefore(ktdk)) {
+                throw new IllegalArgumentException("Registration period must have a valid start and end");
+            }
+            Set<String> requestedIds = new HashSet<>(classIds);
+            if (requestedIds.isEmpty() || requestedIds.size() != classIds.size()) {
+                throw new IllegalArgumentException("Class ids must be non-empty and unique");
+            }
+            List<LopHocPhan> classes = em.createQuery(
+                            "SELECT l FROM LopHocPhan l LEFT JOIN FETCH l.giangVien " +
+                                    "WHERE l.maLHP IN :ids AND l.deleted = false", LopHocPhan.class)
+                    .setParameter("ids", requestedIds)
+                    .setLockMode(LockModeType.PESSIMISTIC_WRITE)
+                    .getResultList();
+            if (classes.size() != requestedIds.size()) {
+                throw new IllegalArgumentException("One or more classes do not exist");
+            }
+            if (classes.stream().anyMatch(l -> l.getGiangVien() == null)) {
+                throw new IllegalStateException("Every class must have a lecturer before registration opens");
+            }
+            if (classes.stream().anyMatch(l -> l.getThoiGianBDDK() != null || l.getThoiGianKTDK() != null)) {
+                throw new IllegalStateException("A class can only have one registration period");
+            }
+            classes.forEach(l -> {
+                l.setThoiGianBDDK(bddk);
+                l.setThoiGianKTDK(ktdk);
+            });
+        });
+    }
+
+    @Override
+    public List<HoSoHocPhan> findStudentsByClass(String maLHP, int page, int limit) {
         return execute(em -> em.createQuery(
                 "SELECT h FROM HoSoHocPhan h JOIN FETCH h.sinhVien s JOIN FETCH s.nguoiDung " +
                 "WHERE h.lopHocPhan.maLHP = :maLHP AND h.deleted = false ORDER BY s.maSV ASC", HoSoHocPhan.class)
                 .setParameter("maLHP", maLHP)
+                .setFirstResult(Math.max(0, (page - 1) * limit))
+                .setMaxResults(limit)
                 .getResultList());
+    }
+
+    @Override
+    public long countStudentsByClass(String maLHP) {
+        return execute(em -> em.createQuery(
+                        "SELECT COUNT(h) FROM HoSoHocPhan h " +
+                                "WHERE h.lopHocPhan.maLHP = :maLHP AND h.deleted = false", Long.class)
+                .setParameter("maLHP", maLHP)
+                .getSingleResult());
+    }
+
+    @Override
+    public boolean hasLecturerConflict(String maGV, String maHocKy, int thu, int tietBatDau,
+                                       int soTiet, String excludedClassId) {
+        return execute(em -> {
+            String jpql = "SELECT COUNT(l) FROM LopHocPhan l " +
+                    "WHERE l.deleted = false AND l.giangVien.maNV = :maGV " +
+                    "AND l.hocKy.maHocKy = :maHocKy AND l.thu = :thu " +
+                    "AND l.tietBatDau <= :tietKetThuc " +
+                    "AND :tietBatDau <= l.tietBatDau + l.soTiet - 1";
+            if (excludedClassId != null && !excludedClassId.isBlank()) {
+                jpql += " AND l.maLHP <> :excludedClassId";
+            }
+            TypedQuery<Long> query = em.createQuery(jpql, Long.class)
+                    .setParameter("maGV", maGV)
+                    .setParameter("maHocKy", maHocKy)
+                    .setParameter("thu", thu)
+                    .setParameter("tietBatDau", tietBatDau)
+                    .setParameter("tietKetThuc", tietBatDau + soTiet - 1);
+            if (excludedClassId != null && !excludedClassId.isBlank()) {
+                query.setParameter("excludedClassId", excludedClassId);
+            }
+            return query.getSingleResult() > 0;
+        });
+    }
+
+    @Override
+    public boolean hasRoomConflict(LocalDate ngayHoc, String phongHoc, int tietBatDau,
+                                   int soTiet, String excludedScheduleId) {
+        return execute(em -> hasRoomConflict(
+                em, ngayHoc, phongHoc, tietBatDau, soTiet, excludedScheduleId, null));
+    }
+
+    @Override
+    public boolean hasRoomConflictExcludingClass(LocalDate ngayHoc, String phongHoc, int tietBatDau,
+                                                 int soTiet, String excludedClassId) {
+        return execute(em -> hasRoomConflict(
+                em, ngayHoc, phongHoc, tietBatDau, soTiet, null, excludedClassId));
     }
 
     @Override
     public List<LichHoc> findSchedulesByClass(String maLHP) {
         return execute(em -> em.createQuery(
-                "SELECT l FROM LichHoc l WHERE l.lopHocPhan.maLHP = :maLHP AND l.deleted = false ORDER BY l.ngayHoc ASC", LichHoc.class)
+                "SELECT l FROM LichHoc l WHERE l.lopHocPhan.maLHP = :maLHP AND l.deleted = false " +
+                        "ORDER BY l.ngayHoc ASC, l.maLichHoc ASC", LichHoc.class)
                 .setParameter("maLHP", maLHP)
                 .getResultList());
     }
@@ -239,36 +376,29 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
 
     @Override
     public LichHoc saveSchedule(LichHoc lichHoc) {
-        return execute(em -> {
-            LichHoc existing = em.find(LichHoc.class, lichHoc.getMaLichHoc());
-            if (existing == null) {
-                em.persist(lichHoc);
-                return lichHoc;
-            } else {
-                return em.merge(lichHoc);
-            }
+        return executeInTransaction(em -> {
+            return save(em, LichHoc.class, lichHoc.getMaLichHoc(), lichHoc);
         });
     }
 
     @Override
     public void deleteScheduleById(String maLichHoc) {
-        execute(em -> {
+        executeInTransaction(em -> {
             LichHoc l = em.find(LichHoc.class, maLichHoc);
-            if (l != null) {
+            if (l != null && !Boolean.TRUE.equals(l.getDeleted())) {
                 l.setDeleted(true);
-                em.merge(l);
             }
-            return null;
         });
     }
 
     @Override
     public void deleteSchedulesByClass(String maLHP) {
-        execute(em -> {
-            em.createQuery("UPDATE LichHoc l SET l.deleted = true WHERE l.lopHocPhan.maLHP = :maLHP")
+        executeInTransaction(em -> {
+            em.createQuery(
+                        "UPDATE LichHoc l SET l.deleted = true " +
+                                "WHERE l.lopHocPhan.maLHP = :maLHP AND l.deleted = false")
                     .setParameter("maLHP", maLHP)
                     .executeUpdate();
-            return null;
         });
     }
 
@@ -329,14 +459,87 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
 
     @Override
     public YeuCauMoLop saveClassRequest(YeuCauMoLop req) {
-        return execute(em -> {
-            YeuCauMoLop existing = em.find(YeuCauMoLop.class, req.getMaYeuCau());
-            if (existing == null) {
-                em.persist(req);
-                return req;
-            } else {
-                return em.merge(req);
-            }
+        return executeInTransaction(em -> {
+            return save(em, YeuCauMoLop.class, req.getMaYeuCau(), req);
         });
+    }
+
+    private void persistSchedules(
+            EntityManager em, LopHocPhan lhp, List<LichHoc> schedules, boolean allowExistingForSameClass) {
+        if (schedules == null) {
+            throw new IllegalArgumentException("Schedules must not be null");
+        }
+        Set<String> scheduleIds = new HashSet<>();
+        for (LichHoc schedule : schedules) {
+            if (schedule == null || schedule.getMaLichHoc() == null || schedule.getMaLichHoc().isBlank()
+                    || !scheduleIds.add(schedule.getMaLichHoc())) {
+                throw new IllegalArgumentException("Schedule ids must be non-empty and unique");
+            }
+            LichHoc existing = em.find(LichHoc.class, schedule.getMaLichHoc());
+            if (existing != null && (!allowExistingForSameClass
+                    || existing.getLopHocPhan() == null
+                    || !lhp.getMaLHP().equals(existing.getLopHocPhan().getMaLHP()))) {
+                throw new IllegalArgumentException("Schedule already belongs to another class: "
+                        + schedule.getMaLichHoc());
+            }
+        }
+        for (LichHoc schedule : schedules) {
+            schedule.setLopHocPhan(lhp);
+            if (em.find(LichHoc.class, schedule.getMaLichHoc()) == null) {
+                em.persist(schedule);
+            } else {
+                em.merge(schedule);
+            }
+        }
+    }
+
+    private void validateRoomAvailability(EntityManager em, LopHocPhan lhp,
+                                          List<LichHoc> schedules, String excludedClassId) {
+        if (schedules == null) {
+            throw new IllegalArgumentException("Schedules must not be null");
+        }
+        for (LichHoc schedule : schedules) {
+            if (schedule != null && hasRoomConflict(em, schedule.getNgayHoc(), schedule.getPhongHoc(),
+                    lhp.getTietBatDau(), lhp.getSoTiet(), null, excludedClassId)) {
+                throw new IllegalArgumentException("Room conflict: " + schedule.getPhongHoc()
+                        + " on " + schedule.getNgayHoc());
+            }
+        }
+    }
+
+    private boolean hasRoomConflict(EntityManager em, LocalDate ngayHoc, String phongHoc,
+                                    int tietBatDau, int soTiet, String excludedScheduleId,
+                                    String excludedClassId) {
+        String jpql = "SELECT COUNT(l) FROM LichHoc l JOIN l.lopHocPhan c " +
+                "WHERE l.deleted = false AND c.deleted = false " +
+                "AND l.ngayHoc = :ngayHoc AND l.phongHoc = :phongHoc " +
+                "AND c.tietBatDau <= :tietKetThuc " +
+                "AND :tietBatDau <= c.tietBatDau + c.soTiet - 1";
+        if (excludedScheduleId != null && !excludedScheduleId.isBlank()) {
+            jpql += " AND l.maLichHoc <> :excludedScheduleId";
+        }
+        if (excludedClassId != null && !excludedClassId.isBlank()) {
+            jpql += " AND c.maLHP <> :excludedClassId";
+        }
+        TypedQuery<Long> query = em.createQuery(jpql, Long.class)
+                .setParameter("ngayHoc", ngayHoc)
+                .setParameter("phongHoc", phongHoc)
+                .setParameter("tietBatDau", tietBatDau)
+                .setParameter("tietKetThuc", tietBatDau + soTiet - 1);
+        if (excludedScheduleId != null && !excludedScheduleId.isBlank()) {
+            query.setParameter("excludedScheduleId", excludedScheduleId);
+        }
+        if (excludedClassId != null && !excludedClassId.isBlank()) {
+            query.setParameter("excludedClassId", excludedClassId);
+        }
+        return query.getSingleResult() > 0;
+    }
+
+    private <E> E save(EntityManager em, Class<E> type, Object id, E entity) {
+        if (em.find(type, id) == null) {
+            em.persist(entity);
+            return entity;
+        }
+        return em.merge(entity);
     }
 }

@@ -10,6 +10,7 @@ import com.university.core.model.TroLyDaoTao;
 import com.university.core.model.YeuCauMoLop;
 import com.university.core.repository.GenericRepository;
 import java.time.OffsetDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,13 +36,32 @@ public interface AssistantRepository extends GenericRepository<TroLyDaoTao, Stri
 
     LopHocPhan saveClass(LopHocPhan lhp);
 
+    LopHocPhan createClassWithSchedules(LopHocPhan lhp, List<LichHoc> schedules);
+
+    LopHocPhan updateClassWithSchedules(LopHocPhan lhp, List<LichHoc> schedules);
+
     void deleteClass(String maLHP);
+
+    boolean deleteClassWithSchedulesIfNoStudents(String maLHP);
 
     boolean assignLecturer(String maLHP, String maGV);
 
     boolean updateRegistrationPeriod(String maLHP, OffsetDateTime bddk, OffsetDateTime ktdk);
 
-    List<HoSoHocPhan> findStudentsByClass(String maLHP);
+    void updateRegistrationPeriods(List<String> classIds, OffsetDateTime bddk, OffsetDateTime ktdk);
+
+    List<HoSoHocPhan> findStudentsByClass(String maLHP, int page, int limit);
+
+    long countStudentsByClass(String maLHP);
+
+    boolean hasLecturerConflict(String maGV, String maHocKy, int thu, int tietBatDau,
+                                int soTiet, String excludedClassId);
+
+    boolean hasRoomConflict(LocalDate ngayHoc, String phongHoc, int tietBatDau,
+                            int soTiet, String excludedScheduleId);
+
+    boolean hasRoomConflictExcludingClass(LocalDate ngayHoc, String phongHoc, int tietBatDau,
+                                          int soTiet, String excludedClassId);
 
     List<LichHoc> findSchedulesByClass(String maLHP);
 
