@@ -1,6 +1,117 @@
+# ====================================================================
+# Maven & Build Artifacts
+# ====================================================================
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+
+# Maven Release & Helper Files
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# ====================================================================
+# Logs & JVM Crash Dumps & Test Reports
+# ====================================================================
+*.log
+logs/
+*.dumpstream
+*.dump
+hs_err_pid*
+replay_pid*
+test-output/
+
+# ====================================================================
+# IntelliJ IDEA
+# ====================================================================
 .idea/
-doc/KE_HOACH_THUC_HIEN_MODULE_PROFILE.md
-doc/KE_HOACH_THUC_HIEN_MODULE_NOTIFICATION.md
-doc/test_profile.json
-doc/test_notification.json
+*.iml
+*.iws
+*.ipr
+out/
+
+# ====================================================================
+# Visual Studio Code
+# ====================================================================
+.vscode/
+*.code-workspace
+.history/
+
+# ====================================================================
+# Eclipse
+# ====================================================================
+.project
+.classpath
+.settings/
+.metadata/
+bin/
+tmp/
+.factorypath
+
+# ====================================================================
+# NetBeans
+# ====================================================================
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ====================================================================
+# Environment & Sensitive Files
+# ====================================================================
+.env
+*.env
+*.env.local
+*.env.*.local
+src/main/resources/.env
+src/main/resources/*.env
+!.env.example
+
+# ====================================================================
+# Operating System Files
+# ====================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ====================================================================
+# Temporary & Backup Files
+# ====================================================================
+*.tmp
+*.bak
+*.swp
+scratch/
+
+# ====================================================================
+# Project Specific Ignores
+# ====================================================================
+doc/
 index.html
