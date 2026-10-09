@@ -72,7 +72,7 @@
 - **32.** [GET `/assistant/classes/{maLHP}/students`](#api-32-get-assistant-classes-maLHP-students) : Xem danh sách sinh viên ghi danh và xuất file in (Có meta phân trang)
 - **33.** [GET `/assistant/schedules/{maLHP}`](#api-33-get-assistant-schedules-maLHP) : Lấy danh sách tất cả các buổi học chi tiết trong kỳ của lớp (Có meta)
 - **34.** [PUT `/assistant/schedules/{maLHP}`](#api-34-put-assistant-schedules-maLHP) : Điều chỉnh dời ngày, đổi phòng học chi tiết (Kiểm tra trùng phòng)
-- **35.** [DELETE `/assistant/schedules/{maLHP}`](#api-35-delete-schedules-maLHP) : Xóa lịch học 
+- **35.** [DELETE `/assistant/schedules/{maLH}`](#api-35-delete-schedules-maLH) : Xóa một lịch học cụ thể
 - **36.** [GET `/assistant/class-requests`](#api-36-get-assistant-class-requests) : Lấy danh sách phiếu kiến nghị mở lớp từ sinh viên (Có meta phân trang)
 - **37.** [PATCH `/assistant/class-requests/{maYeuCau}/status`](#api-37-patch-assistant-class-requests-maYeuCau-status) : Tiếp nhận hoặc Duyệt / Từ chối yêu cầu mở lớp
 
@@ -1049,7 +1049,7 @@ None
       "tenHP": "Kiến trúc phần mềm",
       "siSo": 58,
       "khoaDiem": false,
-      "trangThai": "DANG_MO",
+      "trangThai": "DAGUI",
       "tenLHP": "Kiến trúc phần mềm - Lớp 02"
     }
   ],
@@ -1817,6 +1817,8 @@ Content-Disposition: attachment; filename="BangDiem_INT1405_01.xlsx"
 
 | Tham số | Kiểu dữ liệu | Bắt buộc | Mặc định | Mô tả chức năng |
 | :--- | :--- | :---: | :--- | :--- |
+| `page` | `integer` | Tùy chọn | `1` | Số thứ tự trang cần lấy khi `export=false` |
+| `limit` | `integer` | Tùy chọn | `10` | Số bản ghi tối đa trên một trang khi `export=false` |
 | `export` | `boolean` | Tùy chọn | `False` | Cờ yêu cầu xuất danh sách phục vụ in ấn/báo cáo (`true`/`false`, mặc định `false`) |
 
 #### 2. Dữ liệu đầu ra (Output)
@@ -1849,10 +1851,16 @@ Content-Disposition: attachment; filename="BangDiem_INT1405_01.xlsx"
   "meta": {
     "maLHP": "INT1405_01",
     "siSoHienTai": 58,
-    "siSoToiDa": 60
+    "siSoToiDa": 60,
+    "page": 1,
+    "pageSize": 10,
+    "totalItems": 58,
+    "totalPages": 6
   }
 }
 ```
+
+Khi `export=true`, API bỏ qua `page` và `limit`, xuất toàn bộ danh sách sinh viên dưới dạng file Excel `.xlsx`.
 
 ---
 
@@ -1969,19 +1977,21 @@ Content-Disposition: attachment; filename="BangDiem_INT1405_01.xlsx"
 ```
 
 ---
-<a id="api-35-delete-schedules-maLHP"></a>
-### 35. [DELETE] `/assistant/schedules/{maLHP}`
+<a id="api-35-delete-schedules-maLH"></a>
+### 35. [DELETE] `/assistant/schedules/{maLH}`
 **Tên chức năng:** Xóa một lịch học cụ thể ra khỏi thời khóa biểu
 
 - **Phân hệ (Tag):** `7. Phân hệ Trợ lý Đào tạo (Academic Assistant)`
 - **Phương thức HTTP:** `DELETE`
-- **Đường dẫn endpoint:** `/assistant/schedules/{maLHP}`
+- **Đường dẫn endpoint:** `/assistant/schedules/{maLH}`
 
 #### 1. Dữ liệu đầu vào (Input)
 
 **Tham số truy vấn (path Parameters):**
 
-path param (maLHP: string)
+| Tham số | Kiểu dữ liệu | Bắt buộc | Mô tả chức năng |
+| :--- | :--- | :---: | :--- |
+| `maLH` | `string` | **Bắt buộc** | Mã định danh của một buổi học cụ thể (`LichHoc.maLichHoc`) cần xóa |
 
 #### 2. Dữ liệu đầu ra (Output)
 
@@ -2013,7 +2023,7 @@ path param (maLHP: string)
 
 | Tham số | Kiểu dữ liệu | Bắt buộc | Mặc định | Mô tả chức năng |
 | :--- | :--- | :---: | :--- | :--- |
-| `trangThai` | `string` | Tùy chọn | - | Lọc theo trạng thái hồ sơ/yêu cầu (`DAGUI`, `DATIEPNHAN`, `CHODUYET`, `DATUCHOI`) [Giá trị hợp lệ: `DAGUI`, `DATIEPNHAN`, `CHODUYET`, `DATUCHOI`] |
+| `trangThai` | `string` | Tùy chọn | - | Lọc theo trạng thái hồ sơ/yêu cầu (`DAGUI`, `DATIEPNHAN`, `DADUYET`, `DATUCHOI`) [Giá trị hợp lệ: `DAGUI`, `DATIEPNHAN`, `DADUYET`, `DATUCHOI`] |
 | `page` | `integer` | Tùy chọn | `1` | Số thứ tự trang cần lấy trong phân trang (mặc định: 1) |
 | `limit` | `integer` | Tùy chọn | `10` | Số lượng bản ghi tối đa trên một trang (mặc định: 10) |
 
@@ -2036,7 +2046,7 @@ path param (maLHP: string)
       "tenHP": "Kỹ nghệ phần mềm",
       "lyDo": "Cần hoàn thành tín chỉ bắt buộc để kịp tiến độ tốt nghiệp",
       "lichHocMongMuon": "Thứ 4 (Tiết 1-3) hoặc Thứ 6 (Tiết 7-9)",
-      "trangThai": "DANG_MO",
+      "trangThai": "DATIEPNHAN",
       "ngayTao": "2025-08-01T08:30:00Z"
     },
     {
@@ -2046,7 +2056,7 @@ path param (maLHP: string)
       "tenHP": "Kiến trúc phần mềm",
       "lyDo": "Cần hoàn thành tín chỉ bắt buộc để kịp tiến độ tốt nghiệp",
       "lichHocMongMuon": "Thứ 4 (Tiết 1-3) hoặc Thứ 6 (Tiết 7-9)",
-      "trangThai": "DANG_MO",
+      "trangThai": "DADUYET",
       "ngayTao": "2025-08-01T08:30:00Z",
       "hoTen": "Lê Thị Cẩm Nhung"
     }
@@ -2086,16 +2096,24 @@ path param (maLHP: string)
 *Bảng mô tả chi tiết các thuộc tính Request Body:*
 | Thuộc tính | Kiểu dữ liệu | Bắt buộc | Ý nghĩa / Ràng buộc |
 | :--- | :--- | :---: | :--- |
-| `trangThai` | `string` | **Bắt buộc** | Trạng thái hoạt động / xử lý của bản ghi [Giá trị hợp lệ: `DATIEPNHAN`, `CHODUYET`, `DATUCHOI`] |
-| `phanHoi` | `string` | Tùy chọn | Nội dung phản hồi giải trình của trợ lý đào tạo đối với yêu cầu |
+| `trangThai` | `string` | **Bắt buộc** | Trạng thái xử lý mới [Giá trị hợp lệ: `DATIEPNHAN`, `DADUYET`, `DATUCHOI`] |
 
 *Ví dụ JSON Request Body gửi lên:*
 ```json
 {
-  "trangThai": "DANG_MO",
-  "phanHoi": "Đã tiếp nhận yêu cầu, đang cân đối giảng viên và phòng học"
+  "trangThai": "DADUYET"
 }
 ```
+
+Luồng chuyển trạng thái hợp lệ:
+
+```text
+DAGUI -> DATIEPNHAN
+DATIEPNHAN -> DADUYET
+DAGUI hoặc DATIEPNHAN -> DATUCHOI
+```
+
+API không nhận hoặc lưu nội dung phản hồi tùy ý. Thông báo response được hệ thống tạo mặc định theo trạng thái mới.
 
 #### 2. Dữ liệu đầu ra (Output)
 
