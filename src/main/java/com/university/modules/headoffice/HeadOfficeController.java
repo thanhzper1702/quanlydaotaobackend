@@ -2,8 +2,6 @@ package com.university.modules.headoffice;
 import com.university.modules.headoffice.HeadOfficeRequestDTO.CreateCourseRequestDTO;
 import com.university.modules.headoffice.HeadOfficeRequestDTO.CreateSemesterRequestDTO;
 import com.university.modules.headoffice.HeadOfficeRequestDTO.UpdateCourseRequestDTO;
-import com.university.modules.headoffice.HeadOfficeRequestDTO.UpdateGradeLockRequestDTO;
-import com.university.modules.headoffice.HeadOfficeResponseDTO.*;
 
 
 import com.university.core.common.BaseController;
@@ -11,6 +9,12 @@ import com.university.core.common.ApiResponse;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Path("/head-office")
 @Consumes(MediaType.APPLICATION_JSON)
@@ -31,77 +35,52 @@ public class HeadOfficeController extends BaseController {
     @Path("/courses")
     public Response getCourses(@QueryParam("page") @DefaultValue("1") int page,
                                @QueryParam("limit") @DefaultValue("10") int limit) {
-        return execute(() -> Response.ok(ApiResponse.success("Danh mục học phần gốc", headOfficeService.getCourses(page, limit))).build());
+        return execute(() -> {
+            HeadOfficeResponseDTO.HeadOfficeCourseResponseDTO data = headOfficeService.getCourses(page, limit);
+            ApiResponse<Object> response = ApiResponse.success("Danh mục học phần gốc", data == null ? List.of() : data.getItems());
+            response.setMeta(buildPaginationMeta(page, limit, data == null ? 0 : data.getTotalElements()));
+            return Response.ok(response).build();
+        });
     }
 
     @POST
     @Path("/courses")
     public Response createCourse(CreateCourseRequestDTO request) {
-        return execute(() -> Response.status(Response.Status.CREATED)
-            .entity(ApiResponse.success(Response.Status.CREATED.getStatusCode(), "Tạo học phần thành công", headOfficeService.createCourse(request))).build());
+        return execute(() -> {
+            headOfficeService.createCourse(request);
+            return Response.status(Response.Status.CREATED)
+                .entity(ApiResponse.success(Response.Status.CREATED.getStatusCode(), "Tạo học phần thành công", null)).build();
+        });
     }
 
     @PUT
     @Path("/courses/{maHP}")
     public Response updateCourse(@PathParam("maHP") String maHP, UpdateCourseRequestDTO request) {
-        return execute(() -> Response.ok(ApiResponse.success("Cập nhật học phần thành công", headOfficeService.updateCourse(maHP, request))).build());
-    }
-
-    @DELETE
-    @Path("/courses/{maHP}")
-    public Response deleteCourse(@PathParam("maHP") String maHP) {
         return execute(() -> {
-            headOfficeService.deleteCourse(maHP);
-            return Response.ok(ApiResponse.success("Xóa học phần thành công", null)).build();
+            headOfficeService.updateCourse(maHP, request);
+            return Response.status(Response.Status.CREATED)
+                .entity(ApiResponse.success(Response.Status.CREATED.getStatusCode(), "chỉnh sửa học phần thành công", null)).build();
         });
     }
 
     @GET
     @Path("/semesters")
     public Response getSemesters() {
-        return execute(() -> Response.ok(ApiResponse.success("Toàn bộ danh sách học kỳ", headOfficeService.getSemesters())).build());
+        return execute(() -> {
+            HeadOfficeResponseDTO.HeadOfficeSemesterResponseDTO data = headOfficeService.getSemesters();
+            ApiResponse<Object> response = ApiResponse.success("Toàn bộ danh sách học kỳ", data == null ? List.of() : data.getItems());
+            response.setMeta(Map.of("tongSoHocKy", data == null ? 0 : data.getTotalElements()));
+            return Response.ok(response).build();
+        });
     }
 
     @POST
     @Path("/semesters")
     public Response createSemester(CreateSemesterRequestDTO request) {
-        return execute(() -> Response.status(Response.Status.CREATED)
-            .entity(ApiResponse.success(Response.Status.CREATED.getStatusCode(), "Tạo học kỳ thành công", headOfficeService.createSemester(request))).build());
-    }
-
-    @GET
-    @Path("/semesters/{maHocKy}/classes")
-    public Response getClasses(@PathParam("maHocKy") String maHocKy,
-                               @QueryParam("page") @DefaultValue("1") int page,
-                               @QueryParam("limit") @DefaultValue("10") int limit) {
-        return execute(() -> Response.ok(ApiResponse.success("Danh sách lớp học phần", headOfficeService.getClasses(maHocKy, page, limit))).build());
-    }
-
-    @GET
-    @Path("/classes/{maLHP}/students")
-    public Response getClassGrades(@PathParam("maLHP") String maLHP) {
-        return execute(() -> Response.ok(ApiResponse.success("Danh sách sinh viên và bảng điểm", headOfficeService.getClassGrades(maLHP))).build());
-    }
-
-    @GET
-    @Path("/classes/{maLHP}/students/export")
-    @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public Response exportClassGrades(@PathParam("maLHP") String maLHP) {
-        return execute(() -> Response.ok(headOfficeService.exportClassGradesExcel(maLHP))
-                .header("Content-Disposition", "attachment; filename=headoffice-class-grades.xlsx")
-                .type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .build());
-    }
-
-    @PATCH
-    @Path("/classes/{maLHP}/grade-lock")
-    public Response updateGradeLock(@PathParam("maLHP") String maLHP, UpdateGradeLockRequestDTO request) {
         return execute(() -> {
-            if (request == null || request.getKhoaDiem() == null) {
-                throw new IllegalArgumentException("khoaDiem là bắt buộc");
-            }
-            return Response.ok(ApiResponse.success("Cập nhật trạng thái khóa điểm thành công",
-                    headOfficeService.updateGradeLock(maLHP, request.getKhoaDiem()))).build();
+            headOfficeService.createSemester(request);
+            return Response.status(Response.Status.CREATED)
+                .entity(ApiResponse.success(Response.Status.CREATED.getStatusCode(), "Tạo học kỳ thành công", null)).build();
         });
     }
 
@@ -110,17 +89,12 @@ public class HeadOfficeController extends BaseController {
     public Response getLecturers(@QueryParam("khoa") String khoa,
                                  @QueryParam("page") @DefaultValue("1") int page,
                                  @QueryParam("limit") @DefaultValue("10") int limit) {
-        return execute(() -> Response.ok(ApiResponse.success("Danh sách giảng viên", headOfficeService.getLecturers(khoa, page, limit))).build());
-    }
-
-    @GET
-    @Path("/lecturers/export")
-    @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public Response exportLecturers(@QueryParam("khoa") String khoa) {
-        return execute(() -> Response.ok(headOfficeService.exportLecturersExcel(khoa))
-                .header("Content-Disposition", "attachment; filename=headoffice-lecturers.xlsx")
-                .type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .build());
+        return execute(() -> {
+            HeadOfficeResponseDTO.HeadOfficeLecturerResponseDTO data = headOfficeService.getLecturers(khoa, page, limit);
+            ApiResponse<Object> response = ApiResponse.success("Danh sách giảng viên kèm meta", data == null ? List.of() : data.getItems());
+            response.setMeta(buildPaginationMeta(page, limit, data == null ? 0 : data.getTotalElements()));
+            return Response.ok(response).build();
+        });
     }
 
     @GET
@@ -129,34 +103,69 @@ public class HeadOfficeController extends BaseController {
                                 @QueryParam("khoa") String khoa,
                                 @QueryParam("page") @DefaultValue("1") int page,
                                 @QueryParam("limit") @DefaultValue("10") int limit) {
-        return execute(() -> Response.ok(ApiResponse.success("Danh sách sinh viên", headOfficeService.getStudents(nienKhoa, khoa, page, limit))).build());
-    }
-
-    @GET
-    @Path("/students/export")
-    @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public Response exportStudents(@QueryParam("nienKhoa") String nienKhoa,
-                                   @QueryParam("khoa") String khoa) {
-        return execute(() -> Response.ok(headOfficeService.exportStudentsExcel(nienKhoa, khoa))
-                .header("Content-Disposition", "attachment; filename=headoffice-students.xlsx")
-                .type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .build());
+        return execute(() -> {
+            HeadOfficeResponseDTO.HeadOfficeStudentResponseDTO data = headOfficeService.getStudents(nienKhoa, khoa, page, limit);
+            ApiResponse<Object> response = ApiResponse.success("Danh sách sinh viên kèm meta", data == null ? List.of() : data.getItems());
+            response.setMeta(buildPaginationMeta(page, limit, data == null ? 0 : data.getTotalElements()));
+            return Response.ok(response).build();
+        });
     }
 
     @GET
     @Path("/statistics")
     public Response getStatistics(@QueryParam("maHocKy") String maHocKy) {
-        return execute(() -> Response.ok(ApiResponse.success("Thống kê đào tạo", headOfficeService.getStatistics(maHocKy))).build());
+        return execute(() -> {
+            HeadOfficeResponseDTO.HeadOfficeStatisticsResponseDTO statistics = headOfficeService.getStatistics(maHocKy);
+            Map<String, Object> legacyData = new LinkedHashMap<>();
+            legacyData.put("tongSinhVienToanTruong", statistics.getTotalStudents());
+            legacyData.put("sinhVienTheoKhoa", statistics.getStudentsByKhoa());
+            legacyData.put("sinhVienTheoGioiTinh", statistics.getStudentsByGender());
+            legacyData.put("xepLoaiHocLuc", toLegacyAcademicResults(statistics.getAcademicResults()));
+            legacyData.put("soLuongDinhChiThi", statistics.getSuspendedExamRecords());
+            legacyData.put("soLuongRotMon", statistics.getFailedGrades());
+
+            ApiResponse<Object> response = ApiResponse.success("Dữ liệu thống kê tổng hợp toàn trường", legacyData);
+            response.setMeta(buildStatisticsMeta(maHocKy));
+            return Response.ok(response).build();
+        });
     }
 
-    @GET
-    @Path("/statistics/export")
-    @Produces("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-    public Response exportStatistics(@QueryParam("maHocKy") String maHocKy) {
-        return execute(() -> Response.ok(headOfficeService.exportStatisticsExcel(maHocKy))
-                .header("Content-Disposition", "attachment; filename=headoffice-statistics.xlsx")
-                .type("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-                .build());
+    private static Map<String, Object> buildPaginationMeta(int page, int limit, long totalItems) {
+        Map<String, Object> meta = new LinkedHashMap<>();
+        meta.put("page", page);
+        meta.put("pageSize", limit);
+        meta.put("totalItems", totalItems);
+        meta.put("totalPages", limit > 0 ? (int) Math.ceil((double) totalItems / limit) : 0);
+        return meta;
+    }
+
+    private static Map<String, Object> buildStatisticsMeta(String maHocKy) {
+        Map<String, Object> meta = new LinkedHashMap<>();
+        meta.put("maHocKy", maHocKy);
+        meta.put("ngayXuatThongKe", LocalDateTime.now(ZoneOffset.UTC).toString());
+        meta.put("nguoiTaoThongKe", "Trưởng phòng Đào tạo - PGS.TS Trần Văn Hùng");
+        return meta;
+    }
+
+    private static Map<String, Long> toLegacyAcademicResults(Map<String, Long> source) {
+        if (source == null || source.isEmpty()) {
+            return new LinkedHashMap<>();
+        }
+        Map<String, Long> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Long> entry : source.entrySet()) {
+            String normalized = entry.getKey() == null ? "" : entry.getKey().trim();
+            String legacyKey = switch (normalized.toUpperCase()) {
+                case "XUAT_SAC" -> "XuatSac";
+                case "GIOI" -> "Gioi";
+                case "KHA" -> "Kha";
+                case "TRUNG_BINH" -> "TrungBinh";
+                case "YEU" -> "Yeu";
+                case "ROT" -> "Rot";
+                default -> normalized;
+            };
+            result.merge(legacyKey, entry.getValue(), Long::sum);
+        }
+        return result;
     }
 
     private Response execute(java.util.function.Supplier<Response> action) {

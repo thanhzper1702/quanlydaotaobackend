@@ -43,6 +43,8 @@ public interface HeadOfficeRepository extends GenericRepository<TruongPhongDaoTa
 
     long countLecturers(String khoa);
 
+    long countClassesByLecturer(String maNV);
+
     List<SinhVien> findStudents(String nienKhoa, String khoa, int page, int limit);
 
     long countStudents(String nienKhoa, String khoa);
