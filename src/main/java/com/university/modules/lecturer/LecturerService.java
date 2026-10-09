@@ -1,21 +1,25 @@
 package com.university.modules.lecturer;
-import com.university.modules.lecturer.requestDTO.*;
-import com.university.modules.lecturer.responseDTO.*;
+import com.university.modules.lecturer.LectureRequest.UpdateAttendanceRequest;
+import com.university.modules.lecturer.LectureRequest.UpdateGradesRequest;
+import com.university.modules.lecturer.LectureResponse.LecturerAttendanceResponse;
+import com.university.modules.lecturer.LectureResponse.LecturerClassGradeResponse;
+import com.university.modules.lecturer.LectureResponse.LecturerTeachingClassResponse;
+import com.university.modules.lecturer.LectureResponse.LecturerTeachingScheduleResponse;
 
 
 public interface LecturerService {
 
-    LecturerTeachingClassResponseDTO getTeachingClasses(String maGV, String maHocKy);
+    LecturerTeachingClassResponse getTeachingClasses(String maGV, String maHocKy);
 
-    LecturerClassGradeResponseDTO getClassGrades(String maGV, String maLHP);
+    LecturerClassGradeResponse getClassGrades(String maGV, String maLHP);
 
-    UpdateGradesResponseDTO updateClassGrades(String maGV, String maLHP, UpdateGradesRequestDTO request);
+    void updateClassGrades(String maGV, String maLHP, UpdateGradesRequest request);
 
     byte[] exportGradesExcel(String maGV, String maLHP);
 
-    LecturerTeachingScheduleResponseDTO getTeachingSchedule(String maGV, String maHocKy);
+    LecturerTeachingScheduleResponse getTeachingSchedule(String maGV, String maHocKy, Integer tuan);
 
-    LecturerAttendanceResponseDTO getAttendanceList(String maGV, String maLichHoc);
+    LecturerAttendanceResponse getAttendanceList(String maGV, String maLichHoc);
 
-    UpdateAttendanceResponseDTO updateAttendance(String maGV, String maLichHoc, UpdateAttendanceRequestDTO request);
+    void updateAttendance(String maGV, String maLichHoc, UpdateAttendanceRequest request);
 }
