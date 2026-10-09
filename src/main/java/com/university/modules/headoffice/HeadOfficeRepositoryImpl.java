@@ -3,10 +3,14 @@ package com.university.modules.headoffice;
 import com.university.core.model.GiangVien;
 import com.university.core.model.HocKy;
 import com.university.core.model.HocPhan;
+import com.university.core.model.HoSoHocPhan;
+import com.university.core.model.LopHocPhan;
 import com.university.core.model.SinhVien;
 import com.university.core.model.TruongPhongDaoTao;
 import com.university.core.model.YeuCauMoLop;
 import com.university.core.model.enums.TrangThaiYeuCau;
+import com.university.core.model.enums.KetQua;
+import com.university.core.model.enums.TrangThaiHocPhan;
 import com.university.core.repository.AbstractJpaRepository;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
@@ -56,7 +60,7 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
 
     @Override
     public HocPhan saveCourse(HocPhan course) {
-        return execute(em -> {
+        return executeInTransaction(em -> {
             HocPhan existing = em.find(HocPhan.class, course.getMaHP());
             if (existing == null) {
                 em.persist(course);
@@ -64,6 +68,20 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
             } else {
                 return em.merge(course);
             }
+        });
+    }
+
+    @Override
+    public boolean softDeleteCourseIfUnused(String maHP) {
+        return executeInTransaction(em -> {
+            int updated = em.createQuery(
+                            "UPDATE HocPhan h SET h.deleted = true " +
+                                    "WHERE h.maHP = :maHP AND h.deleted = false " +
+                                    "AND NOT EXISTS (SELECT l FROM LopHocPhan l WHERE l.monHoc = h) " +
+                                    "AND NOT EXISTS (SELECT y FROM YeuCauMoLop y WHERE y.hocPhan = h)")
+                    .setParameter("maHP", maHP)
+                    .executeUpdate();
+            return updated > 0;
         });
     }
 
@@ -91,7 +109,7 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
 
     @Override
     public HocKy saveSemester(HocKy semester) {
-        return execute(em -> {
+        return executeInTransaction(em -> {
             HocKy existing = em.find(HocKy.class, semester.getMaHocKy());
             if (existing == null) {
                 em.persist(semester);
@@ -100,6 +118,49 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
                 return em.merge(semester);
             }
         });
+    }
+
+    @Override
+    public List<LopHocPhan> findClasses(String maHocKy, int page, int limit) {
+        return execute(em -> {
+            TypedQuery<LopHocPhan> query = em.createQuery(
+                    "SELECT l FROM LopHocPhan l JOIN FETCH l.monHoc JOIN FETCH l.hocKy " +
+                            "LEFT JOIN FETCH l.giangVien g LEFT JOIN FETCH g.nguoiDung " +
+                            "WHERE l.hocKy.maHocKy = :maHocKy AND l.deleted = false ORDER BY l.maLHP ASC", LopHocPhan.class)
+                    .setParameter("maHocKy", maHocKy);
+            query.setFirstResult(Math.max(0, (page - 1) * limit));
+            query.setMaxResults(limit);
+            return query.getResultList();
+        });
+    }
+
+    @Override
+    public long countClasses(String maHocKy) {
+        return execute(em -> em.createQuery(
+                "SELECT COUNT(l) FROM LopHocPhan l WHERE l.hocKy.maHocKy = :maHocKy AND l.deleted = false", Long.class)
+                .setParameter("maHocKy", maHocKy).getSingleResult());
+    }
+
+    @Override
+    public Optional<LopHocPhan> findClassById(String maLHP) {
+        return execute(em -> {
+            try {
+                return Optional.of(em.createQuery(
+                                "SELECT l FROM LopHocPhan l JOIN FETCH l.monHoc JOIN FETCH l.hocKy " +
+                                        "WHERE l.maLHP = :maLHP AND l.deleted = false", LopHocPhan.class)
+                        .setParameter("maLHP", maLHP).getSingleResult());
+            } catch (NoResultException exception) {
+                return Optional.empty();
+            }
+        });
+    }
+
+    @Override
+    public List<HoSoHocPhan> findClassGrades(String maLHP) {
+        return execute(em -> em.createQuery(
+                        "SELECT h FROM HoSoHocPhan h JOIN FETCH h.sinhVien s JOIN FETCH s.nguoiDung " +
+                                "WHERE h.lopHocPhan.maLHP = :maLHP AND h.deleted = false ORDER BY s.maSV ASC", HoSoHocPhan.class)
+                .setParameter("maLHP", maLHP).getResultList());
     }
 
     @Override
@@ -211,13 +272,84 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
     }
 
     @Override
+    public long countTotalClasses() {
+        return execute(em -> em.createQuery(
+                "SELECT COUNT(l) FROM LopHocPhan l WHERE l.deleted = false", Long.class)
+                .getSingleResult());
+    }
+
+    @Override
+    public long countFailedGrades(String maHocKy) {
+        return execute(em -> em.createQuery(
+                        "SELECT COUNT(DISTINCT h.sinhVien.maSV) FROM HoSoHocPhan h JOIN h.lopHocPhan l " +
+                                "WHERE h.deleted = false AND l.deleted = false " +
+                                "AND h.ketQua = :ketQua AND l.hocKy.maHocKy = :maHocKy", Long.class)
+                .setParameter("ketQua", KetQua.F)
+                .setParameter("maHocKy", maHocKy)
+                .getSingleResult());
+    }
+
+    @Override
+    public long countSuspendedExamRecords(String maHocKy) {
+        return execute(em -> em.createQuery(
+                        "SELECT COUNT(DISTINCT h.sinhVien.maSV) FROM HoSoHocPhan h JOIN h.lopHocPhan l " +
+                                "WHERE h.deleted = false AND l.deleted = false " +
+                                "AND h.trangThai = :trangThai AND l.hocKy.maHocKy = :maHocKy", Long.class)
+                .setParameter("trangThai", TrangThaiHocPhan.DINHCHITHI)
+                .setParameter("maHocKy", maHocKy)
+                .getSingleResult());
+    }
+
+    @Override
+    public List<Object[]> countStudentsByNienKhoa() {
+        return execute(em -> em.createQuery(
+                        "SELECT s.nienKhoa, COUNT(s) FROM SinhVien s " +
+                                "WHERE s.deleted = false GROUP BY s.nienKhoa ORDER BY s.nienKhoa", Object[].class)
+                .getResultList());
+    }
+
+    @Override
+    public List<Object[]> countStudentsByKhoa() {
+        return execute(em -> em.createQuery(
+                        "SELECT s.khoa, COUNT(s) FROM SinhVien s " +
+                                "WHERE s.deleted = false GROUP BY s.khoa ORDER BY s.khoa", Object[].class)
+                .getResultList());
+    }
+
+    @Override
+    public List<Object[]> countStudentsByGender() {
+        return execute(em -> em.createQuery(
+                        "SELECT s.nguoiDung.gioiTinh, COUNT(s) FROM SinhVien s " +
+                                "WHERE s.deleted = false GROUP BY s.nguoiDung.gioiTinh ORDER BY s.nguoiDung.gioiTinh", Object[].class)
+                .getResultList());
+    }
+
+    @Override
+    public List<Object[]> countAcademicResults(String maHocKy) {
+        return execute(em -> {
+            String jpql = "SELECT h.ketQua, COUNT(DISTINCT h.sinhVien.maSV) " +
+                    "FROM HoSoHocPhan h JOIN h.lopHocPhan l " +
+                    "WHERE h.deleted = false AND l.deleted = false";
+            if (maHocKy != null && !maHocKy.trim().isEmpty()) {
+                jpql += " AND l.hocKy.maHocKy = :maHocKy";
+            }
+            jpql += " GROUP BY h.ketQua ORDER BY h.ketQua";
+            var query = em.createQuery(jpql, Object[].class);
+            if (maHocKy != null && !maHocKy.trim().isEmpty()) {
+                query.setParameter("maHocKy", maHocKy.trim());
+            }
+            return query.getResultList();
+        });
+    }
+
+    @Override
     public long countTotalCourses() {
         return countCourses();
     }
 
     @Override
     public boolean updateGradeLock(String maLHP, boolean isLocked) {
-        return execute(em -> {
+        return executeInTransaction(em -> {
             int updated = em.createQuery(
                     "UPDATE LopHocPhan l SET l.khoaDiem = :locked WHERE l.maLHP = :maLHP AND l.deleted = false")
                     .setParameter("locked", isLocked)
@@ -239,7 +371,7 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
 
     @Override
     public boolean updateApprovalStatus(String maYeuCau, TrangThaiYeuCau status) {
-        return execute(em -> {
+        return executeInTransaction(em -> {
             int updated = em.createQuery(
                     "UPDATE YeuCauMoLop y SET y.trangThai = :status WHERE y.maYeuCau = :maYeuCau AND y.deleted = false")
                     .setParameter("status", status)
