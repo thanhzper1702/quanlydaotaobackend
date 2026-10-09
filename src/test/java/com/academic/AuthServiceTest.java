@@ -11,11 +11,11 @@ import com.university.core.util.PasswordUtil;
 import com.university.modules.auth.AuthRepository;
 import com.university.modules.auth.AuthResult;
 import com.university.modules.auth.AuthServiceImpl;
-import com.university.modules.auth.requestDTO.AdminLoginRequestDTO;
-import com.university.modules.auth.requestDTO.LoginRequestDTO;
-import com.university.modules.auth.responseDTO.AdminLoginResponseDTO;
-import com.university.modules.auth.responseDTO.LoginResponseDTO;
-import com.university.modules.auth.responseDTO.RefreshTokenResponseDTO;
+import com.university.modules.auth.AuthRequestDTO.AdminLoginRequestDTO;
+import com.university.modules.auth.AuthRequestDTO.LoginRequestDTO;
+import com.university.modules.auth.AuthResponseDTO.AdminLoginResponseDTO;
+import com.university.modules.auth.AuthResponseDTO.LoginResponseDTO;
+import com.university.modules.auth.AuthResponseDTO.RefreshTokenResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -2,10 +2,10 @@ package com.university.modules.notification;
 
 import com.university.core.common.ApiResponse;
 import com.university.core.common.BaseController;
-import com.university.modules.notification.requestDTO.CreateNotificationRequestDTO;
-import com.university.modules.notification.requestDTO.UpdateNotificationRequestDTO;
-import com.university.modules.notification.responseDTO.NotificationListResponseDTO;
-import com.university.modules.notification.responseDTO.NotificationResponseDTO;
+import com.university.modules.notification.NotificationRequestDTO.CreateNotificationRequestDTO;
+import com.university.modules.notification.NotificationRequestDTO.UpdateNotificationRequestDTO;
+import com.university.modules.notification.NotificationResponseDTO.CreateNotificationResponseDTO;
+import com.university.modules.notification.NotificationResponseDTO.NotificationListResponseDTO;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -70,7 +70,7 @@ public class NotificationController extends BaseController {
                         .build();
             }
 
-            NotificationResponseDTO responseData = notificationService.createNotification(request, role);
+            CreateNotificationResponseDTO responseData = notificationService.createNotification(request, role);
             return Response.status(Response.Status.CREATED)
                     .entity(ApiResponse.success(201, "Phát hành thông báo thành công", responseData))
                     .build();

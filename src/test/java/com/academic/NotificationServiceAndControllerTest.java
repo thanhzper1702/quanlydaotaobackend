@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.university.core.common.ApiResponse;
 import com.university.core.model.ThongBao;
 import com.university.modules.notification.*;
-import com.university.modules.notification.requestDTO.CreateNotificationRequestDTO;
-import com.university.modules.notification.requestDTO.UpdateNotificationRequestDTO;
-import com.university.modules.notification.responseDTO.NotificationMetaDTO;
-import com.university.modules.notification.responseDTO.NotificationResponseDTO;
+import com.university.modules.notification.NotificationRequestDTO.CreateNotificationRequestDTO;
+import com.university.modules.notification.NotificationRequestDTO.UpdateNotificationRequestDTO;
+import com.university.modules.notification.NotificationResponseDTO.CreateNotificationResponseDTO;
+import com.university.modules.notification.NotificationResponseDTO.NotificationMetaDTO;
 import jakarta.ws.rs.core.Response;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -258,7 +258,7 @@ public class NotificationServiceAndControllerTest {
         assertEquals("Phát hành thông báo thành công", body.getMessage());
         assertNotNull(body.getData());
 
-        NotificationResponseDTO data = (NotificationResponseDTO) body.getData();
+        CreateNotificationResponseDTO data = (CreateNotificationResponseDTO) body.getData();
         assertNotNull(data.getMaThongBao());
         assertNotNull(data.getNgayTao());
 

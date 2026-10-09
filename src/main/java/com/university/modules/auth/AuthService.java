@@ -1,11 +1,11 @@
 package com.university.modules.auth;
 
-import com.university.modules.auth.requestDTO.AdminLoginRequestDTO;
-import com.university.modules.auth.requestDTO.LoginRequestDTO;
-import com.university.modules.auth.responseDTO.AdminLoginResponseDTO;
-import com.university.modules.auth.responseDTO.LoginResponseDTO;
-import com.university.modules.auth.responseDTO.LogoutResponseDTO;
-import com.university.modules.auth.responseDTO.RefreshTokenResponseDTO;
+import com.university.modules.auth.AuthRequestDTO.AdminLoginRequestDTO;
+import com.university.modules.auth.AuthRequestDTO.LoginRequestDTO;
+import com.university.modules.auth.AuthResponseDTO.AdminLoginResponseDTO;
+import com.university.modules.auth.AuthResponseDTO.LoginResponseDTO;
+import com.university.modules.auth.AuthResponseDTO.LogoutResponseDTO;
+import com.university.modules.auth.AuthResponseDTO.RefreshTokenResponseDTO;
 
 public interface AuthService {
 

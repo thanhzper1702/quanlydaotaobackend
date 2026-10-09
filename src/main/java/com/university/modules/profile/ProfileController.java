@@ -2,8 +2,8 @@ package com.university.modules.profile;
 
 import com.university.core.common.ApiResponse;
 import com.university.core.common.BaseController;
-import com.university.modules.profile.requestDTO.ChangePasswordRequestDTO;
-import com.university.modules.profile.responseDTO.UserProfileResponseDTO;
+import com.university.modules.profile.ProfileRequestDTO.ChangePasswordRequestDTO;
+import com.university.modules.profile.ProfileResponseDTO.UserProfileResponseDTO;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;

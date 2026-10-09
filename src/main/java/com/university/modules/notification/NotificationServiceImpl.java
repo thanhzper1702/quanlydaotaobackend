@@ -1,13 +1,13 @@
 package com.university.modules.notification;
 
 import com.university.core.model.ThongBao;
-import com.university.modules.notification.requestDTO.CreateNotificationRequestDTO;
-import com.university.modules.notification.requestDTO.UpdateNotificationRequestDTO;
-import com.university.modules.notification.responseDTO.DeleteNotificationResponseDTO;
-import com.university.modules.notification.responseDTO.NotificationItemDTO;
-import com.university.modules.notification.responseDTO.NotificationListResponseDTO;
-import com.university.modules.notification.responseDTO.NotificationMetaDTO;
-import com.university.modules.notification.responseDTO.NotificationResponseDTO;
+import com.university.modules.notification.NotificationRequestDTO.CreateNotificationRequestDTO;
+import com.university.modules.notification.NotificationRequestDTO.UpdateNotificationRequestDTO;
+import com.university.modules.notification.NotificationResponseDTO.CreateNotificationResponseDTO;
+import com.university.modules.notification.NotificationResponseDTO.DeleteNotificationResponseDTO;
+import com.university.modules.notification.NotificationResponseDTO.NotificationItemDTO;
+import com.university.modules.notification.NotificationResponseDTO.NotificationListResponseDTO;
+import com.university.modules.notification.NotificationResponseDTO.NotificationMetaDTO;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -66,12 +66,12 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public NotificationResponseDTO createNotification(CreateNotificationRequestDTO request) {
+    public CreateNotificationResponseDTO createNotification(CreateNotificationRequestDTO request) {
         return createNotification(request, "TROLY");
     }
 
     @Override
-    public NotificationResponseDTO createNotification(CreateNotificationRequestDTO request, String role) {
+    public CreateNotificationResponseDTO createNotification(CreateNotificationRequestDTO request, String role) {
         checkManagementRole(role);
 
         if (request == null) {
@@ -99,13 +99,13 @@ public class NotificationServiceImpl implements NotificationService {
         thongBao.setNgayTao(LocalDateTime.now());
 
         ThongBao saved = notificationRepository.save(thongBao);
-        return new NotificationResponseDTO(saved.getMaThongBao(), formatDateTime(saved.getNgayTao()));
+        return new CreateNotificationResponseDTO(saved.getMaThongBao(), formatDateTime(saved.getNgayTao()));
     }
 
     @Override
-    public NotificationResponseDTO updateNotification(Long id, UpdateNotificationRequestDTO request) {
+    public CreateNotificationResponseDTO updateNotification(Long id, UpdateNotificationRequestDTO request) {
         updateNotification(id, request, "TROLY");
-        return new NotificationResponseDTO(id, formatDateTime(LocalDateTime.now()));
+        return new CreateNotificationResponseDTO(id, formatDateTime(LocalDateTime.now()));
     }
 
     @Override

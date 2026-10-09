@@ -8,11 +8,11 @@ import com.university.core.model.SinhVien;
 import com.university.core.model.TroLyDaoTao;
 import com.university.core.model.TruongPhongDaoTao;
 import com.university.core.util.PasswordUtil;
-import com.university.modules.profile.requestDTO.ChangePasswordRequestDTO;
-import com.university.modules.profile.responseDTO.ChangePasswordResponseDTO;
-import com.university.modules.profile.responseDTO.UserProfileResponseDTO;
-import com.university.modules.profile.responseDTO.UserProfileResponseDTO.ThongTinCanBoDTO;
-import com.university.modules.profile.responseDTO.UserProfileResponseDTO.ThongTinHocVuDTO;
+import com.university.modules.profile.ProfileRequestDTO.ChangePasswordRequestDTO;
+import com.university.modules.profile.ProfileResponseDTO.ChangePasswordResponseDTO;
+import com.university.modules.profile.ProfileResponseDTO.UserProfileResponseDTO;
+import com.university.modules.profile.ProfileResponseDTO.UserProfileResponseDTO.ThongTinCanBoDTO;
+import com.university.modules.profile.ProfileResponseDTO.UserProfileResponseDTO.ThongTinHocVuDTO;
 
 import java.util.List;
 import java.util.Optional;
