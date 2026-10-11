@@ -107,6 +107,10 @@ CREATE TABLE HocKy (
     tenHocKy VARCHAR(20) NOT NULL,
     thoiGianBD DATE NOT NULL,
     thoiGianKT DATE NOT NULL,
+    is_current BOOLEAN DEFAULT FALSE,
+    manual_override BOOLEAN DEFAULT FALSE,
+    updated_by_tro_ly VARCHAR(50),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT chk_ten_hocky CHECK (tenHocKy IN ('HOCKY1', 'HOCKY2', 'HOCKYHE')),
     CONSTRAINT chk_thoi_gian_hocky CHECK (thoiGianKT > thoiGianBD)
@@ -137,6 +141,7 @@ CREATE TABLE LopHocPhan (
     thoiGianBDDK TIMESTAMP WITH TIME ZONE NULL,
     thoiGianKTDK TIMESTAMP WITH TIME ZONE NULL,
     khoaDiem BOOLEAN DEFAULT FALSE,
+    is_editable BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT chk_thoi_gian_dang_ky 
     CHECK (
@@ -148,7 +153,7 @@ CREATE TABLE LopHocPhan (
     CONSTRAINT fk_lhp_hocky FOREIGN KEY (maHocKy) REFERENCES HocKy(maHocKy) ON DELETE RESTRICT,
     CONSTRAINT fk_lhp_troly FOREIGN KEY (maNV_TroLy) REFERENCES TroLyDaoTao(maNV) ON DELETE RESTRICT,
     CONSTRAINT fk_lhp_giangvien FOREIGN KEY (maGV) REFERENCES GiangVien(maNV) ON DELETE SET NULL,
-    CONSTRAINT chk_lhp_trangthai CHECK (trangThai IN ('MODANGKY', 'DANGHOC', 'KETTHUC')),
+    CONSTRAINT chk_lhp_trangthai CHECK (trangThai IN ('CHUA_MO', 'MODANGKY', 'DANGHOC', 'KETTHUC')),
     CONSTRAINT chk_lhp_siso CHECK (siSoHienTai >= 0 AND siSoHienTai <= siSoToiDa),
     CONSTRAINT chk_lhp_tiet CHECK (thu BETWEEN 2 AND 8 AND tietBatDau BETWEEN 1 AND 15 AND soTiet > 0 AND (tietBatDau + soTiet - 1) <= 15)
 );
@@ -165,6 +170,7 @@ CREATE TABLE HoSoHocPhan (
     ketQua VARCHAR(5),
     soBuoiVang INT NOT NULL DEFAULT 0,
     trangThai VARCHAR(20) NOT NULL DEFAULT 'DADANGKY',
+    is_editable BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_hshp_sinhvien FOREIGN KEY (maSV) REFERENCES SinhVien(maSV) ON DELETE RESTRICT,
     CONSTRAINT fk_hshp_lophocphan FOREIGN KEY (maLHP) REFERENCES LopHocPhan(maLHP) ON DELETE RESTRICT,
@@ -189,7 +195,7 @@ CREATE TABLE YeuCauMoLop (
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_ycml_sinhvien FOREIGN KEY (maSV) REFERENCES SinhVien(maSV) ON DELETE CASCADE,
     CONSTRAINT fk_ycml_hocphan FOREIGN KEY (maHocPhan) REFERENCES HocPhan(maHP) ON DELETE RESTRICT,
-    CONSTRAINT chk_ycml_trangthai CHECK (trangThai IN ('DAGUI', 'DATIEPNHAN', 'CHODUYET', 'DATUCHOI'))
+    CONSTRAINT chk_ycml_trangthai CHECK (trangThai IN ('DAGUI', 'DATIEPNHAN', 'CHODUYET', 'DADUYET', 'DATUCHOI'))
 );
 
 -- Lịch Học chi tiết từng ngày của Lớp Học Phần
@@ -198,6 +204,7 @@ CREATE TABLE LichHoc (
     maLHP VARCHAR(20) NOT NULL,
     ngayHoc DATE NOT NULL,
     phongHoc VARCHAR(50) NOT NULL,
+    is_editable BOOLEAN DEFAULT TRUE,
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_lichhoc_lhp FOREIGN KEY (maLHP) REFERENCES LopHocPhan(maLHP) ON DELETE CASCADE
 );
@@ -228,6 +235,9 @@ CREATE TABLE ThongBao (
 -- 4. TỐI ƯU RÀNG BUỘC DUY NHẤT & CHỈ MỤC CHO XÓA MỀM (PARTIAL UNIQUE INDEXES)
 -- ====================================================================
 -- Với cơ chế xóa mềm, chỉ kiểm tra tính duy nhất trên các bản ghi CHƯA BỊ XÓA (deleted = FALSE)
+
+-- Đảm bảo chỉ có tối đa 1 học kỳ được đánh dấu là hiện tại (is_current = TRUE)
+CREATE UNIQUE INDEX uq_current_semester ON HocKy (is_current) WHERE is_current = TRUE;
 
 CREATE UNIQUE INDEX unq_active_nguoidung_email ON NguoiDung(email) WHERE deleted = FALSE;
 CREATE UNIQUE INDEX unq_active_hshp_sv_lhp ON HoSoHocPhan(maSV, maLHP) WHERE deleted = FALSE;
