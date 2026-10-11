@@ -61,7 +61,7 @@ public class RoleFilter implements ContainerRequestFilter {
             return;
         }
 
-        if (path.startsWith("assistant") && !"TROLY".equals(role)) {
+        if (path.startsWith("assistant") && !"TROLY".equals(role) && !"TRUONGPHONG".equals(role)) {
             requestContext.abortWith(
                     Response.status(Response.Status.FORBIDDEN)
                             .type(MediaType.APPLICATION_JSON)

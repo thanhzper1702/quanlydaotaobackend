@@ -2,6 +2,7 @@ package com.university.core.model;
 
 import com.university.core.model.enums.TrangThaiLop;
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 
 @Entity
@@ -59,11 +60,57 @@ public class LopHocPhan extends BaseEntity {
     @Column(name = "khoaDiem")
     private Boolean khoaDiem = false;
 
+    @Column(name = "is_editable")
+    private Boolean isEditable = true;
+
     public LopHocPhan() {
     }
 
+    public boolean isEditable() {
+        if (Boolean.FALSE.equals(this.isEditable)) {
+            return false;
+        }
+        if (this.hocKy != null && this.hocKy.getThoiGianKT() != null) {
+            return !java.time.LocalDate.now().isAfter(this.hocKy.getThoiGianKT());
+        }
+        return true;
+    }
+
+    public Boolean getIsEditable() {
+        return isEditable();
+    }
+
+    public void setIsEditable(Boolean isEditable) {
+        this.isEditable = isEditable;
+    }
+
+    public TrangThaiLop getAutoTrangThai() {
+        if (hocKy != null && hocKy.isExpired()) {
+            return TrangThaiLop.KETTHUC;
+        }
+        LocalDate today = LocalDate.now();
+        if (hocKy != null && (today.isAfter(hocKy.getThoiGianBD()) || today.isEqual(hocKy.getThoiGianBD()))) {
+            return TrangThaiLop.DANGHOC;
+        }
+        OffsetDateTime now = OffsetDateTime.now();
+        if (thoiGianKTDK != null && now.isAfter(thoiGianKTDK)) {
+            return TrangThaiLop.DANGHOC;
+        }
+        if (thoiGianBDDK != null && now.isBefore(thoiGianBDDK)) {
+            return TrangThaiLop.CHUA_MO;
+        }
+        return TrangThaiLop.MODANGKY;
+    }
+
     public boolean isDangMoDangKy() {
-        if (trangThai != TrangThaiLop.MODANGKY) {
+        if (!isEditable()) {
+            return false;
+        }
+        if (trangThai == TrangThaiLop.KETTHUC || trangThai == TrangThaiLop.DANGHOC) {
+            return false;
+        }
+        LocalDate today = LocalDate.now();
+        if (hocKy != null && (today.isAfter(hocKy.getThoiGianBD()) || today.isEqual(hocKy.getThoiGianBD()))) {
             return false;
         }
         OffsetDateTime now = OffsetDateTime.now();
@@ -215,16 +262,22 @@ public class LopHocPhan extends BaseEntity {
         this.thoiGianKTDK = thoiGianKTDK;
     }
 
+    @Deprecated
     public Boolean getKhoaDiem() {
-        return khoaDiem;
+        return !isEditable();
     }
 
+    @Deprecated
     public Boolean isKhoaDiem() {
-        return khoaDiem != null && khoaDiem;
+        return !isEditable();
     }
 
+    @Deprecated
     public void setKhoaDiem(Boolean khoaDiem) {
         this.khoaDiem = khoaDiem;
+        if (Boolean.TRUE.equals(khoaDiem)) {
+            this.isEditable = false;
+        }
     }
 
     public int getTietKetThuc() {

@@ -39,6 +39,8 @@ public interface ProfileRepository extends GenericRepository<NguoiDung, String> 
 
     List<HoSoHocPhan> findStudentGradeRecords(String maSV);
 
+    default Optional<String> findStudentPriority(String maSV) { return Optional.empty(); }
+
     boolean updatePassword(String cccd, String newHashedPassword);
 
     boolean updateContactInfo(String cccd, String soDienThoai, String diaChi);

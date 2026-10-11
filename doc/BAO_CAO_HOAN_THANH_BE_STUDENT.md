@@ -1,79 +1,79 @@
-# BĂO CĂO HOĂ€N THĂ€NH BACKEND PHĂ‚N Há»† SINH VIĂN (STUDENT MODULE)
+# BÁO CÁO HOÀN THÀNH BACKEND PHÂN HỆ SINH VIÊN (STUDENT MODULE)
 
-- **PhĂ¢n há»‡:** Sinh viĂªn (Student Module)
-- **NhĂ¡nh triá»ƒn khai:** `feature/student`
-- **CĂ¡c API phá»¥ trĂ¡ch:** Route 11 Ä‘áº¿n Route 17 (theo Ä‘áº·c táº£ `APIRoute.md`)
-- **NgĂ y hoĂ n thĂ nh:** 08/10/2026
-- **Tráº¡ng thĂ¡i:** HoĂ n thĂ nh 100% (ÄĂ£ kiá»ƒm thá»­ Ä‘áº¡t 14/14 test cases)
-
----
-
-## 1. Tá»”NG QUAN CĂ”NG VIá»†C ÄĂƒ HOĂ€N THĂ€NH
-
-1. **Hiá»‡n thá»±c Ä‘áº§y Ä‘á»§ 7/7 API Routes phĂ¢n há»‡ Sinh viĂªn:**
-   - HoĂ n thiá»‡n táº§ng Controller (`StudentController.java`).
-   - HoĂ n thiá»‡n táº§ng Service Interface & Implementation (`StudentService.java`, `StudentServiceImpl.java`).
-   - HoĂ n thiá»‡n táº§ng Repository truy váº¥n dá»¯ liá»‡u JPA/Hibernate thá»±c táº¿ qua Database (`StudentRepository.java`, `StudentRepositoryImpl.java`).
-2. **Xá»­ lĂ½ toĂ n diá»‡n Logic nghiá»‡p vá»¥ (Business Logic):**
-   - Kiá»ƒm tra háº¡n má»©c tĂ­n chá»‰ tá»‘i Ä‘a trong ká»³ (tá»‘i Ä‘a 24 tĂ­n chá»‰).
-   - Kiá»ƒm tra thá»i gian má»Ÿ cá»•ng Ä‘Äƒng kĂ½ (`thoiGianBDDK`, `thoiGianKTDK`).
-   - Kiá»ƒm tra sÄ© sá»‘ lá»›p (`siSoHienTai` < `siSoToiDa`).
-   - Tá»± Ä‘á»™ng phĂ¡t hiá»‡n vĂ  ngÄƒn cháº·n **trĂ¹ng thá»i khĂ³a biá»ƒu (lá»‹ch há»c)** vá»›i lá»›p Ä‘Ă£ Ä‘Äƒng kĂ½ (tráº£ vá» mĂ£ HTTP `409 Conflict`).
-   - Há»§y Ä‘Äƒng kĂ½ lá»›p há»c pháº§n vĂ  hoĂ n tráº£ sÄ© sá»‘ lá»›p an toĂ n.
-   - Gá»­i yĂªu cáº§u/kiáº¿n nghá»‹ má»Ÿ thĂªm lá»›p há»c pháº§n má»›i.
-3. **Refactor cáº¥u trĂºc DTO theo chuáº©n thiáº¿t káº¿ gá»n gĂ ng cá»§a team:**
-   - XĂ³a bá» cĂ¡c thÆ° má»¥c ráº£i rĂ¡c `requestDTO/` vĂ  `responseDTO/`.
-   - Gom toĂ n bá»™ Request DTOs vĂ o **1 file duy nháº¥t:** `StudentRequest.java`.
-   - Gom toĂ n bá»™ Response DTOs vĂ o **1 file duy nháº¥t:** `StudentResponse.java`.
-   - Giá»¯ nguyĂªn tÆ°Æ¡ng thĂ­ch ngÆ°á»£c cĂ¡c class alias (`*DTO`).
+- **Phân hệ:** Sinh viên (Student Module)
+- **Nhánh triển khai:** `feature/student`
+- **Các API phụ trách:** Route 11 đến Route 17 (theo đặc tả `APIRoute.md`)
+- **Ngày hoàn thành:** 08/10/2026
+- **Trạng thái:** Hoàn thành 100% (Đã kiểm thử đạt 14/14 test cases)
 
 ---
 
-## 2. Báº¢NG CHI TIáº¾T 7 API PHĂ‚N Há»† SINH VIĂN
+## 1. TỔNG QUAN CÔNG VIỆC ĐÃ HOÀN THÀNH
 
-| Route | Method & Endpoint | MĂ´ táº£ chá»©c nÄƒng | Request Body / Param | Response Model | HTTP Code |
+1. **Hiện thực đầy đủ 7/7 API Routes phân hệ Sinh viên:**
+   - Hoàn thiện tầng Controller (`StudentController.java`).
+   - Hoàn thiện tầng Service Interface & Implementation (`StudentService.java`, `StudentServiceImpl.java`).
+   - Hoàn thiện tầng Repository truy vấn dữ liệu JPA/Hibernate thực tế qua Database (`StudentRepository.java`, `StudentRepositoryImpl.java`).
+2. **Xử lý toàn diện Logic nghiệp vụ (Business Logic):**
+   - Kiểm tra hạn mức tín chỉ tối đa trong kỳ (tối đa 24 tín chỉ).
+   - Kiểm tra thời gian mở cổng đăng ký (`thoiGianBDDK`, `thoiGianKTDK`).
+   - Kiểm tra sĩ số lớp (`siSoHienTai` < `siSoToiDa`).
+   - Tự động phát hiện và ngăn chặn **trùng thời khóa biểu (lịch học)** với lớp đã đăng ký (trả về mã HTTP `409 Conflict`).
+   - Hủy đăng ký lớp học phần và hoàn trả sĩ số lớp an toàn.
+   - Gửi yêu cầu/kiến nghị mở thêm lớp học phần mới.
+3. **Refactor cấu trúc DTO theo chuẩn thiết kế gọn gàng của team:**
+   - Xóa bỏ các thư mục rải rác `requestDTO/` và `responseDTO/`.
+   - Gom toàn bộ Request DTOs vào **1 file duy nhất:** `StudentRequest.java`.
+   - Gom toàn bộ Response DTOs vào **1 file duy nhất:** `StudentResponse.java`.
+   - Giữ nguyên tương thích ngược các class alias (`*DTO`).
+
+---
+
+## 2. BẢNG CHI TIẾT 7 API PHÂN HỆ SINH VIÊN
+
+| Route | Method & Endpoint | Mô tả chức năng | Request Body / Param | Response Model | HTTP Code |
 | :---: | :--- | :--- | :--- | :--- | :---: |
-| **11** | `GET /student/grades` | Xem báº£ng Ä‘iá»ƒm chi tiáº¿t theo ká»³ & meta tĂ­ch lÅ©y | `@QueryParam maHocKy` | `StudentResponse.StudentGradeResponse` | `200 OK` |
-| **12** | `GET /student/schedule` | Láº¥y thá»i khĂ³a biá»ƒu dáº¡ng ma tráº­n tuáº§n | `@QueryParam maHocKy` | `StudentResponse.StudentScheduleResponse` | `200 OK` |
-| **13** | `GET /student/registration/open-classes` | Danh sĂ¡ch lá»›p má»Ÿ Ä‘Äƒng kĂ½ (cĂ³ phĂ¢n trang) | `@QueryParam keyword, page, limit` | `StudentResponse.OpenedEnrollingClass` | `200 OK` |
-| **14** | `GET /student/registration/registered-classes` | Danh sĂ¡ch lá»›p Ä‘Ă£ ghi danh & tá»•ng tĂ­n chá»‰ | KhĂ´ng (láº¥y theo user Ä‘Äƒng nháº­p) | `StudentResponse.RegisteredClassResponse` | `200 OK` |
-| **15** | `POST /student/registration/enroll` | ÄÄƒng kĂ½ lá»›p há»c pháº§n (Check trĂ¹ng lá»‹ch & sÄ© sá»‘) | `StudentRequest.EnrollCourseRequest` | `StudentResponse.EnrollCourseResponse` | `201 Created` / `409` |
-| **16** | `DELETE /student/registration/cancel/{maHoSo}` | Há»§y Ä‘Äƒng kĂ½ lá»›p há»c pháº§n | `@PathParam maHoSo` | `StudentResponse.CancelEnrollmentResponse` | `200 OK` |
-| **17** | `POST /student/registration/open-request` | Gá»­i Ä‘Æ¡n kiáº¿n nghá»‹ má»Ÿ lá»›p há»c pháº§n | `StudentRequest.OpenClassRequestRequest` | `StudentResponse.OpenClassRequestResponse` | `201 Created` |
+| **11** | `GET /student/grades` | Xem bảng điểm chi tiết theo kỳ & meta tích lũy | `@QueryParam maHocKy` | `StudentResponse.StudentGradeResponse` | `200 OK` |
+| **12** | `GET /student/schedule` | Lấy thời khóa biểu dạng ma trận tuần | `@QueryParam maHocKy` | `StudentResponse.StudentScheduleResponse` | `200 OK` |
+| **13** | `GET /student/registration/open-classes` | Danh sách lớp mở đăng ký (có phân trang) | `@QueryParam keyword, page, limit` | `StudentResponse.OpenedEnrollingClass` | `200 OK` |
+| **14** | `GET /student/registration/registered-classes` | Danh sách lớp đã ghi danh & tổng tín chỉ | Không (lấy theo user đăng nhập) | `StudentResponse.RegisteredClassResponse` | `200 OK` |
+| **15** | `POST /student/registration/enroll` | Đăng ký lớp học phần (Check trùng lịch & sĩ số) | `StudentRequest.EnrollCourseRequest` | `StudentResponse.EnrollCourseResponse` | `201 Created` / `409` |
+| **16** | `DELETE /student/registration/cancel/{maHoSo}` | Hủy đăng ký lớp học phần | `@PathParam maHoSo` | `StudentResponse.CancelEnrollmentResponse` | `200 OK` |
+| **17** | `POST /student/registration/open-request` | Gửi đơn kiến nghị mở lớp học phần | `StudentRequest.OpenClassRequestRequest` | `StudentResponse.OpenClassRequestResponse` | `201 Created` |
 
 ---
 
-## 3. Cáº¤U TRĂC GĂ“I MĂƒ NGUá»’N SAU REFACTOR
+## 3. CẤU TRÚC GÓI MÃ NGUỒN SAU REFACTOR
 
 ```text
 com.university.modules.student/
-â”œâ”€â”€ StudentController.java         # Äiá»u hÆ°á»›ng REST API endpoints
-â”œâ”€â”€ StudentService.java            # Khai bĂ¡o cĂ¡c interface nghiá»‡p vá»¥
-â”œâ”€â”€ StudentServiceImpl.java        # Xá»­ lĂ½ logic nghiá»‡p vá»¥ vĂ  rĂ ng buá»™c dá»¯ liá»‡u
-â”œâ”€â”€ StudentRepository.java         # Khai bĂ¡o interface truy váº¥n dá»¯ liá»‡u
-â”œâ”€â”€ StudentRepositoryImpl.java     # Truy váº¥n Hibernate/JPA vĂ o PostgreSQL
-â”œâ”€â”€ StudentBusinessException.java  # Xá»­ lĂ½ exception kĂ¨m HTTP status code
-â”œâ”€â”€ StudentRequest.java            # File gom toĂ n bá»™ Request DTO
-â””â”€â”€ StudentResponse.java           # File gom toĂ n bá»™ Response DTO
+├── StudentController.java         # Điều hướng REST API endpoints
+├── StudentService.java            # Khai báo các interface nghiệp vụ
+├── StudentServiceImpl.java        # Xử lý logic nghiệp vụ và ràng buộc dữ liệu
+├── StudentRepository.java         # Khai báo interface truy vấn dữ liệu
+├── StudentRepositoryImpl.java     # Truy vấn Hibernate/JPA vào PostgreSQL
+├── StudentBusinessException.java  # Xử lý exception kèm HTTP status code
+├── StudentRequest.java            # File gom toàn bộ Request DTO
+└── StudentResponse.java           # File gom toàn bộ Response DTO
 ```
 
 ---
 
-## 4. Káº¾T QUáº¢ KIá»‚M THá»¬ Tá»° Äá»˜NG (UNIT & INTEGRATION TESTS)
+## 4. KẾT QUẢ KIỂM THỬ TỰ ĐỘNG (UNIT & INTEGRATION TESTS)
 
-ÄĂ£ xĂ¢y dá»±ng vĂ  thá»±c thi 2 bá»™ test suite tá»± Ä‘á»™ng vá»›i JUnit 5:
+Đã xây dựng và thực thi 2 bộ test suite tự động với JUnit 5:
 
 1. **`StudentServiceAndControllerTest`**: **7/7 PASSED (100%)**
-   - `testGetGrades`: Äáº¡t chuáº©n báº£ng Ä‘iá»ƒm vĂ  GPA.
-   - `testGetSchedule`: Äáº¡t chuáº©n ma tráº­n tuáº§n thá»i khĂ³a biá»ƒu.
-   - `testGetOpenClasses`: Äáº¡t chuáº©n tra cá»©u vĂ  phĂ¢n trang lá»›p má»Ÿ.
-   - `testGetRegisteredClasses`: Äáº¡t chuáº©n danh sĂ¡ch lá»›p Ä‘Ă£ ghi danh.
-   - `testEnrollCourseSuccessAndConflict`: Äáº¡t chuáº©n Ä‘Äƒng kĂ½ thĂ nh cĂ´ng (201) vĂ  cháº·n trĂ¹ng lá»‹ch há»c (409 Conflict).
-   - `testCancelEnrollment`: Äáº¡t chuáº©n há»§y lá»›p vĂ  cáº­p nháº­t sÄ© sá»‘.
-   - `testRequestOpenCourse`: Äáº¡t chuáº©n gá»­i phiáº¿u Ä‘á» xuáº¥t má»Ÿ lá»›p.
+   - `testGetGrades`: Đạt chuẩn bảng điểm và GPA.
+   - `testGetSchedule`: Đạt chuẩn ma trận tuần thời khóa biểu.
+   - `testGetOpenClasses`: Đạt chuẩn tra cứu và phân trang lớp mở.
+   - `testGetRegisteredClasses`: Đạt chuẩn danh sách lớp đã ghi danh.
+   - `testEnrollCourseSuccessAndConflict`: Đạt chuẩn đăng ký thành công (201) và chặn trùng lịch học (409 Conflict).
+   - `testCancelEnrollment`: Đạt chuẩn hủy lớp và cập nhật sĩ số.
+   - `testRequestOpenCourse`: Đạt chuẩn gửi phiếu đề xuất mở lớp.
 
 2. **`StudentJsonPayloadTest`**: **7/7 PASSED (100%)**
-   - Kiá»ƒm tra chuá»—i JSON Envelope chuáº©n: `{ "status", "success", "message", "data", "meta" }` khá»›p 100% vá»›i Ä‘á»‹nh dáº¡ng trong `chuan_hoa_goi_json` vĂ  Swagger API.
+   - Kiểm tra chuỗi JSON Envelope chuẩn: `{ "status", "success", "message", "data", "meta" }` khớp 100% với định dạng trong `chuan_hoa_goi_json` và Swagger API.
 
-**Tá»•ng káº¿t:** **14/14 test cases PASSED (Tá»· lá»‡ 100%)**.
-BiĂªn dá»‹ch dá»± Ă¡n sáº¡ch sáº½: **0 Errors, 0 Warnings**.
+**Tổng kết:** **14/14 test cases PASSED (Tỷ lệ 100%)**.
+Biên dịch dự án sạch sẽ: **0 Errors, 0 Warnings**.

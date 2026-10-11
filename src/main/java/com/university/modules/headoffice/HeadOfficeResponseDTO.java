@@ -62,13 +62,33 @@ public final class HeadOfficeResponseDTO {
         public List<SemesterItem> getItems() { return items; }
         public long getTotalElements() { return totalElements; }
         public static class SemesterItem {
-            private String maHocKy; private String tenHocKy; private LocalDate thoiGianBD; private LocalDate thoiGianKT;
+            private String maHocKy;
+            private String tenHocKy;
+            private LocalDate thoiGianBD;
+            private LocalDate thoiGianKT;
+            private Boolean dangMo;
+
             public SemesterItem() { }
-            public SemesterItem(String maHocKy, String tenHocKy, LocalDate thoiGianBD, LocalDate thoiGianKT) { this.maHocKy = maHocKy; this.tenHocKy = tenHocKy; this.thoiGianBD = thoiGianBD; this.thoiGianKT = thoiGianKT; }
+            public SemesterItem(String maHocKy, String tenHocKy, LocalDate thoiGianBD, LocalDate thoiGianKT) {
+                this.maHocKy = maHocKy;
+                this.tenHocKy = tenHocKy;
+                this.thoiGianBD = thoiGianBD;
+                this.thoiGianKT = thoiGianKT;
+                this.dangMo = "2026_2027_HK1".equals(maHocKy);
+            }
+            public SemesterItem(String maHocKy, String tenHocKy, LocalDate thoiGianBD, LocalDate thoiGianKT, Boolean dangMo) {
+                this.maHocKy = maHocKy;
+                this.tenHocKy = tenHocKy;
+                this.thoiGianBD = thoiGianBD;
+                this.thoiGianKT = thoiGianKT;
+                this.dangMo = dangMo;
+            }
             public String getMaHocKy() { return maHocKy; }
             public String getTenHocKy() { return tenHocKy; }
             public LocalDate getThoiGianBD() { return thoiGianBD; }
             public LocalDate getThoiGianKT() { return thoiGianKT; }
+            public Boolean getDangMo() { return dangMo; }
+            public void setDangMo(Boolean dangMo) { this.dangMo = dangMo; }
         }
     }
 

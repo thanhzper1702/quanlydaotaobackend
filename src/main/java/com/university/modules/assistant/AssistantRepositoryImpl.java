@@ -281,9 +281,7 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
             if (classes.stream().anyMatch(l -> l.getGiangVien() == null)) {
                 throw new IllegalStateException("Every class must have a lecturer before registration opens");
             }
-            if (classes.stream().anyMatch(l -> l.getThoiGianBDDK() != null || l.getThoiGianKTDK() != null)) {
-                throw new IllegalStateException("A class can only have one registration period");
-            }
+            // Cho phép cập nhật lại đợt đăng ký nếu hợp lệ
             classes.forEach(l -> {
                 l.setThoiGianBDDK(bddk);
                 l.setThoiGianKTDK(ktdk);

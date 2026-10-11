@@ -39,6 +39,12 @@ public final class LectureResponse {
             private Integer siSo;
             private Boolean khoaDiem;
             private String trangThai;
+            private Integer soTinChi;
+            private Integer thu;
+            private Integer tietBatDau;
+            private Integer soTiet;
+            private String phongHoc;
+            private Integer siSoToiDa;
 
             public TeachingClass() {
             }
@@ -89,6 +95,54 @@ public final class LectureResponse {
 
             public void setTrangThai(String trangThai) {
                 this.trangThai = trangThai;
+            }
+
+            public Integer getSoTinChi() {
+                return soTinChi;
+            }
+
+            public void setSoTinChi(Integer soTinChi) {
+                this.soTinChi = soTinChi;
+            }
+
+            public Integer getThu() {
+                return thu;
+            }
+
+            public void setThu(Integer thu) {
+                this.thu = thu;
+            }
+
+            public Integer getTietBatDau() {
+                return tietBatDau;
+            }
+
+            public void setTietBatDau(Integer tietBatDau) {
+                this.tietBatDau = tietBatDau;
+            }
+
+            public Integer getSoTiet() {
+                return soTiet;
+            }
+
+            public void setSoTiet(Integer soTiet) {
+                this.soTiet = soTiet;
+            }
+
+            public String getPhongHoc() {
+                return phongHoc;
+            }
+
+            public void setPhongHoc(String phongHoc) {
+                this.phongHoc = phongHoc;
+            }
+
+            public Integer getSiSoToiDa() {
+                return siSoToiDa;
+            }
+
+            public void setSiSoToiDa(Integer siSoToiDa) {
+                this.siSoToiDa = siSoToiDa;
             }
         }
         public static class Meta {

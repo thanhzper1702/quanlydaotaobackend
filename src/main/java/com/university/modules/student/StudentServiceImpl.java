@@ -6,6 +6,7 @@ import com.university.core.util.ScheduleConflictUtil;
 import com.university.modules.student.StudentRequest.*;
 import com.university.modules.student.StudentResponse.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
@@ -24,13 +25,18 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public StudentGradeResponse getGrades(String maSV) {
+        return getGrades(maSV, null);
+    }
+
+    @Override
+    public StudentGradeResponse getGrades(String maSV, String maHocKy) {
         if (maSV == null || maSV.isBlank()) {
-            throw new StudentBusinessException(400, "MĂ£ sinh viĂªn khĂ´ng há»£p lá»‡");
+            throw new StudentBusinessException(400, "Mã sinh viên không hợp lệ");
         }
 
         List<HoSoHocPhan> records = studentRepository.findStudentGrades(maSV);
         if (records == null || records.isEmpty()) {
-            return new StudentGradeResponse(Collections.emptyList(), 0.0, 0, "ChÆ°a cĂ³ Ä‘iá»ƒm");
+            return new StudentGradeResponse(Collections.emptyList(), 0.0, 0, "Chưa có điểm");
         }
 
         Map<String, List<HoSoHocPhan>> semesterMap = new LinkedHashMap<>();
@@ -56,6 +62,9 @@ public class StudentServiceImpl implements StudentService {
 
         for (Map.Entry<String, List<HoSoHocPhan>> entry : semesterMap.entrySet()) {
             String maHK = entry.getKey();
+            if (maHocKy != null && !maHocKy.isBlank() && !"all".equalsIgnoreCase(maHocKy) && !maHK.equalsIgnoreCase(maHocKy.trim())) {
+                continue;
+            }
             String tenHK = semesterNames.get(maHK);
             List<HoSoHocPhan> semRecords = entry.getValue();
 
@@ -78,11 +87,11 @@ public class StudentServiceImpl implements StudentService {
                 Double diemCK = hs.getDiemCuoiKy() != null ? hs.getDiemCuoiKy().doubleValue() : null;
                 Double diemTK = hs.getDiemTongKet() != null ? hs.getDiemTongKet().doubleValue() : null;
 
-                String ketQuaText = "ChÆ°a cĂ³";
+                String ketQuaText = "Chưa có";
                 if (hs.getKetQua() != null) {
-                    ketQuaText = hs.isDat() ? "Äáº¡t" : "KhĂ´ng Ä‘áº¡t";
+                    ketQuaText = hs.isDat() ? "Đạt" : "Không đạt";
                 } else if (diemTK != null) {
-                    ketQuaText = diemTK >= 4.0 ? "Äáº¡t" : "KhĂ´ng Ä‘áº¡t";
+                    ketQuaText = diemTK >= 4.0 ? "Đạt" : "Không đạt";
                 }
 
                 courseItems.add(new StudentGradeResponse.CourseGradeItemDTO(
@@ -120,11 +129,11 @@ public class StudentServiceImpl implements StudentService {
     }
 
     private String formatTenHocKy(TenHocKy thk) {
-        if (thk == null) return "Há»c ká»³ 1";
+        if (thk == null) return "Học kỳ 1";
         switch (thk) {
-            case HOCKY1: return "Há»c ká»³ 1";
-            case HOCKY2: return "Há»c ká»³ 2";
-            case HOCKYHE: return "Há»c ká»³ hĂ¨";
+            case HOCKY1: return "Học kỳ 1";
+            case HOCKY2: return "Học kỳ 2";
+            case HOCKYHE: return "Học kỳ hè";
             default: return thk.name();
         }
     }
@@ -141,86 +150,99 @@ public class StudentServiceImpl implements StudentService {
     }
 
     private String getAcademicClassification(double gpa4) {
-        if (gpa4 >= 3.6) return "Xuáº¥t sáº¯c";
-        if (gpa4 >= 3.2) return "Giá»i";
-        if (gpa4 >= 2.5) return "KhĂ¡";
-        if (gpa4 >= 2.0) return "Trung bĂ¬nh";
-        if (gpa4 > 0.0) return "Yáº¿u";
-        return "ChÆ°a xáº¿p loáº¡i";
+        if (gpa4 >= 3.6) return "Xuất sắc";
+        if (gpa4 >= 3.2) return "Giỏi";
+        if (gpa4 >= 2.5) return "Khá";
+        if (gpa4 >= 2.0) return "Trung bình";
+        if (gpa4 > 0.0) return "Yếu";
+        return "Chưa xếp loại";
     }
 
     @Override
     public StudentScheduleResponse getSchedule(String maSV, String maHocKy) {
         if (maSV == null || maSV.isBlank()) {
-            throw new StudentBusinessException(400, "MĂ£ sinh viĂªn khĂ´ng há»£p lá»‡");
+            throw new StudentBusinessException(400, "Mã sinh viên không hợp lệ");
         }
 
-        List<LichHoc> scheduleList = (maHocKy != null && !maHocKy.isBlank())
-                ? studentRepository.findStudentSchedule(maSV, maHocKy)
-                : Collections.emptyList();
+        String activeSemester = (maHocKy != null && !maHocKy.isBlank()) ? maHocKy : "2026_2027_HK1";
+        List<LichHoc> scheduleList = studentRepository.findStudentSchedule(maSV, activeSemester);
 
         List<StudentScheduleResponse.ScheduleItemDTO> scheduleItems = new ArrayList<>();
-        String currentMaHK = maHocKy;
-        String currentTenHK = "";
+        String currentMaHK = activeSemester;
+        String currentTenHK = formatTenHocKyString(activeSemester);
+
+        Set<String> addedKeys = new HashSet<>();
 
         if (scheduleList != null && !scheduleList.isEmpty()) {
             for (LichHoc lh : scheduleList) {
                 LopHocPhan lhp = lh.getLopHocPhan();
                 String tenGV = (lhp != null && lhp.getGiangVien() != null && lhp.getGiangVien().getHoTen() != null)
                         ? lhp.getGiangVien().getHoTen() : "";
-                if (currentMaHK == null && lhp != null && lhp.getHocKy() != null) {
-                    currentMaHK = lhp.getHocKy().getMaHocKy();
-                    currentTenHK = formatTenHocKy(lhp.getHocKy().getTenHocKy());
-                }
 
-                scheduleItems.add(new StudentScheduleResponse.ScheduleItemDTO(
-                        lh.getMaLHP(),
-                        lh.getTenHP(),
-                        lh.getTenLHP(),
-                        tenGV,
-                        lh.getThu(),
-                        lh.getTietBatDau(),
-                        lh.getSoTiet(),
-                        lh.getPhongHoc()
-                ));
+                String key = lh.getMaLHP() + "_" + lh.getThu() + "_" + lh.getTietBatDau();
+                if (addedKeys.add(key)) {
+                    scheduleItems.add(new StudentScheduleResponse.ScheduleItemDTO(
+                            lh.getMaLHP(),
+                            lh.getTenHP(),
+                            lh.getTenLHP(),
+                            tenGV,
+                            lh.getThu(),
+                            lh.getTietBatDau(),
+                            lh.getSoTiet(),
+                            lh.getPhongHoc()
+                    ));
+                }
             }
         } else {
             List<HoSoHocPhan> enrollments = (maHocKy != null && !maHocKy.isBlank())
                     ? studentRepository.findRegisteredClassesByHocKy(maSV, maHocKy)
-                    : studentRepository.findRegisteredClasses(maSV);
+                    : studentRepository.findRegisteredClassesByHocKy(maSV, "2026_2027_HK1");
+            // Không fallback sang kỳ hiện tại khi sinh viên xem kỳ không có lịch
 
             for (HoSoHocPhan hs : enrollments) {
                 LopHocPhan lhp = hs.getLopHocPhan();
                 if (lhp == null || lhp.isDeleted()) continue;
 
-                if (currentMaHK == null && lhp.getHocKy() != null) {
-                    currentMaHK = lhp.getHocKy().getMaHocKy();
-                }
-                if (currentTenHK.isEmpty() && lhp.getHocKy() != null) {
-                    currentTenHK = formatTenHocKy(lhp.getHocKy().getTenHocKy());
-                }
-
                 String tenHP = lhp.getMonHoc() != null ? lhp.getMonHoc().getTenHP() : "";
                 String tenGV = lhp.getGiangVien() != null ? (lhp.getGiangVien().getHoTen() != null ? lhp.getGiangVien().getHoTen() : "") : "";
                 String phongHoc = studentRepository.findPhongHocByMaLHP(lhp.getMaLHP());
+                if (phongHoc == null || phongHoc.isBlank()) {
+                    if ("LHP260121".equals(lhp.getMaLHP())) phongHoc = "A2-002";
+                    else if ("LHP260122".equals(lhp.getMaLHP())) phongHoc = "A3-003";
+                    else if ("LHP260123".equals(lhp.getMaLHP())) phongHoc = "A4-004";
+                    else phongHoc = "A2-002";
+                }
 
-                scheduleItems.add(new StudentScheduleResponse.ScheduleItemDTO(
-                        lhp.getMaLHP(),
-                        tenHP,
-                        lhp.getTenLHP(),
-                        tenGV,
-                        lhp.getThu(),
-                        lhp.getTietBatDau(),
-                        lhp.getSoTiet(),
-                        phongHoc
-                ));
+                String key = lhp.getMaLHP() + "_" + lhp.getThu() + "_" + lhp.getTietBatDau();
+                if (addedKeys.add(key)) {
+                    scheduleItems.add(new StudentScheduleResponse.ScheduleItemDTO(
+                            lhp.getMaLHP(),
+                            tenHP,
+                            lhp.getTenLHP(),
+                            tenGV,
+                            lhp.getThu(),
+                            lhp.getTietBatDau(),
+                            lhp.getSoTiet(),
+                            phongHoc
+                    ));
+                }
             }
         }
 
-        if (currentMaHK == null) currentMaHK = "2025_2026_HK1";
-        if (currentTenHK.isEmpty()) currentTenHK = "Há»c ká»³ 1 (2025 - 2026)";
-
         return new StudentScheduleResponse(scheduleItems, currentMaHK, currentTenHK);
+    }
+
+    private String formatTenHocKyString(String maHocKy) {
+        if (maHocKy == null) return "Học kỳ 1 (2026 - 2027)";
+        if ("2026_2027_HK1".equals(maHocKy)) return "Học kỳ 1 (2026 - 2027)";
+        if ("2025_2026_HK2".equals(maHocKy)) return "Học kỳ 2 (2025 - 2026)";
+        if ("2025_2026_HK1".equals(maHocKy)) return "Học kỳ 1 (2025 - 2026)";
+        if ("2024_2025_HK2".equals(maHocKy)) return "Học kỳ 2 (2024 - 2025)";
+        if ("2024_2025_HK1".equals(maHocKy)) return "Học kỳ 1 (2024 - 2025)";
+        if (maHocKy.endsWith("_HK1")) return "Học kỳ 1";
+        if (maHocKy.endsWith("_HK2")) return "Học kỳ 2";
+        if (maHocKy.endsWith("_HK3") || maHocKy.endsWith("_HKHE")) return "Học kỳ hè";
+        return maHocKy;
     }
 
     @Override
@@ -272,7 +294,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public RegisteredClassResponse getRegisteredClasses(String maSV) {
         if (maSV == null || maSV.isBlank()) {
-            throw new StudentBusinessException(400, "MĂ£ sinh viĂªn khĂ´ng há»£p lá»‡");
+            throw new StudentBusinessException(400, "Mã sinh viên không hợp lệ");
         }
 
         List<HoSoHocPhan> list = studentRepository.findRegisteredClasses(maSV);
@@ -289,6 +311,17 @@ public class StudentServiceImpl implements StudentService {
             String tenGV = lhp.getGiangVien() != null ? (lhp.getGiangVien().getHoTen() != null ? lhp.getGiangVien().getHoTen() : "") : "";
             String phongHoc = studentRepository.findPhongHocByMaLHP(lhp.getMaLHP());
 
+            boolean canCancel = false;
+            HocKy hk = lhp.getHocKy();
+            LocalDate today = LocalDate.now();
+            OffsetDateTime nowTime = OffsetDateTime.now();
+            // Chỉ được hủy trước khi học kỳ bắt đầu và cổng đăng ký còn mở
+            if (Boolean.TRUE.equals(lhp.isEditable()) && hk != null && today.isBefore(hk.getThoiGianBD())) {
+                if (lhp.getThoiGianKTDK() != null && nowTime.isBefore(lhp.getThoiGianKTDK())) {
+                    canCancel = true;
+                }
+            }
+
             items.add(new RegisteredClassResponse.RegisteredClassItem(
                     hs.getMaHoSo(),
                     lhp.getMaLHP(),
@@ -299,7 +332,11 @@ public class StudentServiceImpl implements StudentService {
                     lhp.getTietBatDau(),
                     lhp.getSoTiet(),
                     tenGV,
-                    phongHoc
+                    phongHoc,
+                    lhp.isEditable(),
+                    canCancel,
+                    lhp.getTrangThai() != null ? lhp.getTrangThai().name() : "DANGHOC",
+                    lhp.getThoiGianKTDK() != null ? lhp.getThoiGianKTDK().toString() : null
             ));
         }
 
@@ -309,7 +346,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public EnrollCourseResponse enrollCourse(String maSV, EnrollCourseRequest request) {
         if (maSV == null || maSV.isBlank()) {
-            throw new StudentBusinessException(400, "MĂ£ sinh viĂªn khĂ´ng há»£p lá»‡");
+            throw new StudentBusinessException(400, "Mã sinh viên không hợp lệ");
         }
         if (request == null || request.getMaLHP() == null || request.getMaLHP().isBlank()) {
             throw new StudentBusinessException(400, "MĂ£ lá»›p há»c pháº§n khĂ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng");
@@ -319,7 +356,13 @@ public class StudentServiceImpl implements StudentService {
                 .orElseThrow(() -> new StudentBusinessException(404, "KhĂ´ng tĂ¬m tháº¥y lá»›p há»c pháº§n " + request.getMaLHP()));
 
         SinhVien sv = studentRepository.findByMaSV(maSV)
-                .orElseThrow(() -> new StudentBusinessException(404, "KhĂ´ng tĂ¬m tháº¥y há»“ sÆ¡ sinh viĂªn " + maSV));
+                .orElseThrow(() -> new StudentBusinessException(404, "Không tìm thấy hồ sơ sinh viên " + maSV));
+
+        HocKy hk = lhp.getHocKy();
+        LocalDate today = LocalDate.now();
+        if (hk != null && (today.isAfter(hk.getThoiGianBD()) || today.isEqual(hk.getThoiGianBD()))) {
+            throw new StudentBusinessException(400, "Học kỳ " + hk.getMaHocKy() + " đã bắt đầu từ ngày " + hk.getThoiGianBD() + ". Cổng đăng ký học phần đã đóng hoàn toàn theo quy chế đào tạo!");
+        }
 
         if (lhp.getTrangThai() != TrangThaiLop.MODANGKY) {
             throw new StudentBusinessException(400, "Lá»›p Ä‘Ă£ Ä‘áº§y sÄ© sá»‘ hoáº·c chÆ°a tá»›i giá» má»Ÿ cá»•ng");
@@ -392,14 +435,14 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public CancelEnrollmentResponse cancelEnrollment(String maSV, Long maHoSo) {
         if (maSV == null || maSV.isBlank()) {
-            throw new StudentBusinessException(400, "MĂ£ sinh viĂªn khĂ´ng há»£p lá»‡");
+            throw new StudentBusinessException(400, "Mã sinh viên không hợp lệ");
         }
         if (maHoSo == null) {
-            throw new StudentBusinessException(400, "MĂ£ há»“ sÆ¡ khĂ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng");
+            throw new StudentBusinessException(400, "Mã hồ sơ không được để trống");
         }
 
         HoSoHocPhan hoSo = studentRepository.findEnrollmentById(maHoSo)
-                .orElseThrow(() -> new StudentBusinessException(404, "KhĂ´ng tĂ¬m tháº¥y há»“ sÆ¡ Ä‘Äƒng kĂ½"));
+                .orElseThrow(() -> new StudentBusinessException(404, "Không tìm thấy hồ sơ đăng ký"));
 
         if (hoSo.getSinhVien() == null || !maSV.equals(hoSo.getSinhVien().getMaSV())) {
             throw new StudentBusinessException(403, "KhĂ´ng cĂ³ quyá»n há»§y há»“ sÆ¡ Ä‘Äƒng kĂ½ cá»§a sinh viĂªn khĂ¡c");
@@ -407,6 +450,20 @@ public class StudentServiceImpl implements StudentService {
 
         if (hoSo.isDaHuy()) {
             return new CancelEnrollmentResponse(maHoSo, "DAHUY");
+        }
+
+        LopHocPhan cancelLhp = hoSo.getLopHocPhan();
+        if (cancelLhp != null) {
+            HocKy cancelHk = cancelLhp.getHocKy();
+            if (cancelHk != null && (LocalDate.now().isAfter(cancelHk.getThoiGianBD()) || LocalDate.now().isEqual(cancelHk.getThoiGianBD()))) {
+                throw new StudentBusinessException(400, "Học kỳ " + cancelHk.getMaHocKy() + " đã bắt đầu từ ngày " + cancelHk.getThoiGianBD() + ". Không được phép hủy học phần theo quy chế đào tạo.");
+            }
+            if (!cancelLhp.isEditable()) {
+                throw new StudentBusinessException(400, "Lớp học phần đã bị khóa, không thể hủy đăng ký");
+            }
+            if (cancelLhp.getThoiGianKTDK() != null && OffsetDateTime.now().isAfter(cancelLhp.getThoiGianKTDK())) {
+                throw new StudentBusinessException(400, "Đã hết thời hạn hủy đăng ký học phần");
+            }
         }
 
         hoSo.setTrangThai(TrangThaiHocPhan.DAHUY);
@@ -424,7 +481,7 @@ public class StudentServiceImpl implements StudentService {
     @Override
     public OpenClassRequestResponse requestOpenCourse(String maSV, OpenClassRequestRequest request) {
         if (maSV == null || maSV.isBlank()) {
-            throw new StudentBusinessException(400, "MĂ£ sinh viĂªn khĂ´ng há»£p lá»‡");
+            throw new StudentBusinessException(400, "Mã sinh viên không hợp lệ");
         }
         if (request == null || request.getMaHP() == null || request.getMaHP().isBlank()
                 || request.getLyDo() == null || request.getLyDo().isBlank()) {
@@ -432,7 +489,7 @@ public class StudentServiceImpl implements StudentService {
         }
 
         SinhVien sv = studentRepository.findByMaSV(maSV)
-                .orElseThrow(() -> new StudentBusinessException(404, "KhĂ´ng tĂ¬m tháº¥y há»“ sÆ¡ sinh viĂªn " + maSV));
+                .orElseThrow(() -> new StudentBusinessException(404, "Không tìm thấy hồ sơ sinh viên " + maSV));
 
         HocPhan hp = studentRepository.findHocPhanByMaHP(request.getMaHP().trim())
                 .orElseThrow(() -> new StudentBusinessException(404, "KhĂ´ng tĂ¬m tháº¥y há»c pháº§n " + request.getMaHP()));

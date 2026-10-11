@@ -261,22 +261,35 @@ public final class AssistantResponses {
 
     public static class StudentMeta extends PageMeta {
         private String maLHP;
+        private String tenLHP;
+        private String tenHP;
         private int siSoHienTai;
         private int siSoToiDa;
 
         public StudentMeta() {
         }
 
-        public StudentMeta(String maLHP, int siSoHienTai, int siSoToiDa, int page,
+        public StudentMeta(String maLHP, String tenLHP, String tenHP, int siSoHienTai, int siSoToiDa, int page,
                            int pageSize, long totalItems, int totalPages) {
             super(page, pageSize, totalItems, totalPages);
             this.maLHP = maLHP;
+            this.tenLHP = tenLHP;
+            this.tenHP = tenHP;
             this.siSoHienTai = siSoHienTai;
             this.siSoToiDa = siSoToiDa;
         }
 
+        public StudentMeta(String maLHP, int siSoHienTai, int siSoToiDa, int page,
+                           int pageSize, long totalItems, int totalPages) {
+            this(maLHP, "", "", siSoHienTai, siSoToiDa, page, pageSize, totalItems, totalPages);
+        }
+
         public String getMaLHP() { return maLHP; }
         public void setMaLHP(String maLHP) { this.maLHP = maLHP; }
+        public String getTenLHP() { return tenLHP; }
+        public void setTenLHP(String tenLHP) { this.tenLHP = tenLHP; }
+        public String getTenHP() { return tenHP; }
+        public void setTenHP(String tenHP) { this.tenHP = tenHP; }
         public int getSiSoHienTai() { return siSoHienTai; }
         public void setSiSoHienTai(int siSoHienTai) { this.siSoHienTai = siSoHienTai; }
         public int getSiSoToiDa() { return siSoToiDa; }

@@ -24,6 +24,24 @@ public class ProfileController extends BaseController {
     }
 
     @GET
+    @Path("/programs")
+    public Response getPrograms() {
+        java.util.List<java.util.Map<String, Object>> programs = java.util.List.of(
+            java.util.Map.of("maCT", "24110", "tenCT", "Kỹ thuật phần mềm", "khoa", "Công nghệ thông tin", "soTinChi", 126),
+            java.util.Map.of("maCT", "24111", "tenCT", "Khoa học máy tính", "khoa", "Công nghệ thông tin", "soTinChi", 126),
+            java.util.Map.of("maCT", "24112", "tenCT", "Hệ thống thông tin", "khoa", "Công nghệ thông tin", "soTinChi", 126),
+            java.util.Map.of("maCT", "24113", "tenCT", "Mạng máy tính & Truyền thông", "khoa", "Công nghệ thông tin", "soTinChi", 126),
+            java.util.Map.of("maCT", "24114", "tenCT", "An toàn thông tin", "khoa", "Công nghệ thông tin", "soTinChi", 126)
+        );
+        return Response.ok(ApiResponse.success(200, "Danh sách chương trình đào tạo", programs)).build();
+    }
+
+    @GET
+    public Response getProfileRoot() {
+        return getProfile();
+    }
+
+    @GET
     @Path("/me")
     public Response getProfile() {
         try {

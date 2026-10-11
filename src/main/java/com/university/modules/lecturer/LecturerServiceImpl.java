@@ -96,6 +96,20 @@ public class LecturerServiceImpl implements LecturerService {
             item.setSiSo(classSize);
             item.setKhoaDiem(Boolean.TRUE.equals(lhp.getKhoaDiem()));
             item.setTrangThai(mapStatus(lhp.getTrangThai()));
+            item.setSoTinChi(lhp.getSoTinChi() != null ? lhp.getSoTinChi() : 3);
+            item.setThu(lhp.getThu() != null ? lhp.getThu() : 2);
+            item.setTietBatDau(lhp.getTietBatDau() != null ? lhp.getTietBatDau() : 1);
+            item.setSoTiet(lhp.getSoTiet() != null ? lhp.getSoTiet() : 3);
+            item.setSiSoToiDa(lhp.getSiSoToiDa() != null ? lhp.getSiSoToiDa() : 40);
+
+            String phongHoc = "A2-002";
+            if ("LHP260121".equals(lhp.getMaLHP())) phongHoc = "A2-002";
+            else if ("LHP260122".equals(lhp.getMaLHP())) phongHoc = "A3-003";
+            else if ("LHP260123".equals(lhp.getMaLHP())) phongHoc = "A4-004";
+            else if ("LHP260124".equals(lhp.getMaLHP())) phongHoc = "LAB-DB1";
+            else if ("LHP260125".equals(lhp.getMaLHP())) phongHoc = "A1-006";
+            item.setPhongHoc(phongHoc);
+
             data.add(item);
         }
 

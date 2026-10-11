@@ -4,6 +4,8 @@ public interface StudentService {
 
     StudentResponse.StudentGradeResponse getGrades(String maSV);
 
+    StudentResponse.StudentGradeResponse getGrades(String maSV, String maHocKy);
+
     StudentResponse.StudentScheduleResponse getSchedule(String maSV, String maHocKy);
 
     StudentResponse.OpenedEnrollingClass getOpenClasses(String maHP, String keyword, int page, int limit);

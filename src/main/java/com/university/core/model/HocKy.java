@@ -3,6 +3,7 @@ package com.university.core.model;
 import com.university.core.model.enums.TenHocKy;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.OffsetDateTime;
 
 @Entity
 @Table(name = "HocKy")
@@ -21,6 +22,18 @@ public class HocKy extends BaseEntity {
 
     @Column(name = "thoiGianKT", nullable = false)
     private LocalDate thoiGianKT;
+
+    @Column(name = "is_current")
+    private Boolean isCurrent = false;
+
+    @Column(name = "manual_override")
+    private Boolean manualOverride = false;
+
+    @Column(name = "updated_by_tro_ly", length = 50)
+    private String updatedByTroLy;
+
+    @Column(name = "updated_at")
+    private java.time.LocalDateTime thoiGianCapNhat;
 
     public HocKy() {
     }
@@ -57,6 +70,43 @@ public class HocKy extends BaseEntity {
         this.thoiGianKT = thoiGianKT;
     }
 
+    public Boolean getIsCurrent() {
+        return isCurrent != null && isCurrent;
+    }
+
+    public boolean isCurrent() {
+        return isCurrent != null && isCurrent;
+    }
+
+    public void setIsCurrent(Boolean isCurrent) {
+        this.isCurrent = isCurrent;
+    }
+
+    public Boolean getManualOverride() {
+        return manualOverride != null && manualOverride;
+    }
+
+    public void setManualOverride(Boolean manualOverride) {
+        this.manualOverride = manualOverride;
+    }
+
+    public String getUpdatedByTroLy() {
+        return updatedByTroLy;
+    }
+
+    public void setUpdatedByTroLy(String updatedByTroLy) {
+        this.updatedByTroLy = updatedByTroLy;
+    }
+
+    public java.time.LocalDateTime getThoiGianCapNhat() {
+        return thoiGianCapNhat;
+    }
+
+    public void setThoiGianCapNhat(java.time.LocalDateTime thoiGianCapNhat) {
+        this.thoiGianCapNhat = thoiGianCapNhat;
+        setUpdatedAt(thoiGianCapNhat);
+    }
+
     // Compatibility aliases
     public LocalDate getNgayBatDau() {
         return thoiGianBD;
@@ -74,7 +124,14 @@ public class HocKy extends BaseEntity {
         this.thoiGianKT = ngayKetThuc;
     }
 
+    public boolean isExpired() {
+        return thoiGianKT != null && LocalDate.now().isAfter(thoiGianKT);
+    }
+
     public boolean isHienTai() {
+        if (Boolean.TRUE.equals(this.isCurrent)) {
+            return true;
+        }
         return isWithinSemester(LocalDate.now());
     }
 

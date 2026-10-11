@@ -21,7 +21,28 @@ public class LichHoc extends BaseEntity {
     @Column(name = "phongHoc", length = 50, nullable = false)
     private String phongHoc;
 
+    @Column(name = "is_editable")
+    private Boolean isEditable = true;
+
     public LichHoc() {
+    }
+
+    public boolean isEditable() {
+        if (Boolean.FALSE.equals(this.isEditable)) {
+            return false;
+        }
+        if (this.lopHocPhan != null) {
+            return this.lopHocPhan.isEditable();
+        }
+        return true;
+    }
+
+    public Boolean getIsEditable() {
+        return isEditable();
+    }
+
+    public void setIsEditable(Boolean isEditable) {
+        this.isEditable = isEditable;
     }
 
     public String getMaLichHoc() {

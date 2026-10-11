@@ -131,12 +131,24 @@ public class ProfileServiceImpl implements ProfileService {
                         ? Math.round((totalWeightedGpa / totalCreditsAll) * 100.0) / 100.0
                         : 0.0;
 
+                String dienUuTien = profileRepository.findStudentPriority(sv.getMaSV()).orElse("Không (Bình thường)");
+                String lopSinhHoat = "221101A";
+                if (sv.getChuyenNganh() != null && sv.getNienKhoa() != null) {
+                    String prefix = sv.getChuyenNganh().contains("Kỹ thuật phần mềm") ? "KTPM"
+                            : (sv.getChuyenNganh().contains("Khoa học máy tính") ? "KHMT" : "CNTT");
+                    String year = sv.getNienKhoa().split("-")[0].trim();
+                    lopSinhHoat = prefix + year;
+                }
+
                 thongTinHocVu = new ThongTinHocVuDTO(
                         sv.getNienKhoa(),
                         sv.getKhoa(),
                         sv.getChuyenNganh(),
                         totalPassedCredits,
-                        gpaHienTai
+                        gpaHienTai,
+                        lopSinhHoat,
+                        dienUuTien,
+                        "Đang học"
                 );
             }
         } else if ("GIANGVIEN".equalsIgnoreCase(role)) {
@@ -148,7 +160,9 @@ public class ProfileServiceImpl implements ProfileService {
                         gv.getHocVi(),
                         gv.getKhoa(),
                         gv.getNgayBatDau() != null ? gv.getNgayBatDau().toString() : null,
-                        null
+                        null,
+                        "Công nghệ phần mềm",
+                        "Kiến trúc phần mềm, Thiết kế giao diện Web"
                 );
             }
         } else if ("TROLY".equalsIgnoreCase(role)) {
@@ -178,6 +192,7 @@ public class ProfileServiceImpl implements ProfileService {
         }
 
         return new UserProfileResponseDTO(
+                user.getCccd(),
                 maDinhDanh,
                 hoTen,
                 ngaySinh,

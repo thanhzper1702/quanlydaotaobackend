@@ -117,6 +117,27 @@ public final class AssistantRequests {
         public void setThoiGianBD(String thoiGianBD) { this.thoiGianBD = thoiGianBD; }
         public String getThoiGianKT() { return thoiGianKT; }
         public void setThoiGianKT(String thoiGianKT) { this.thoiGianKT = thoiGianKT; }
+        @com.fasterxml.jackson.annotation.JsonProperty("classCodes")
+        public void setClassCodes(List<String> codes) {
+            if (this.dsMaLHP == null || this.dsMaLHP.isEmpty()) {
+                this.dsMaLHP = codes;
+            }
+        }
+
+        @com.fasterxml.jackson.annotation.JsonProperty("thoiGianBDDK")
+        public void setThoiGianBDDK(String bd) {
+            if (this.thoiGianBD == null || this.thoiGianBD.isBlank()) {
+                this.thoiGianBD = bd;
+            }
+        }
+
+        @com.fasterxml.jackson.annotation.JsonProperty("thoiGianKTDK")
+        public void setThoiGianKTDK(String kt) {
+            if (this.thoiGianKT == null || this.thoiGianKT.isBlank()) {
+                this.thoiGianKT = kt;
+            }
+        }
+
     }
 
     public static class UpdateScheduleRequest {

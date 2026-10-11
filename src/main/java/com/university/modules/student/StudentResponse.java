@@ -215,6 +215,8 @@ public final class StudentResponse {
 
             public String getPhongHoc() { return phongHoc; }
             public void setPhongHoc(String phongHoc) { this.phongHoc = phongHoc; }
+
+
         }
     }
 
@@ -404,12 +406,22 @@ public final class StudentResponse {
             private Integer soTiet;
             private String tenGiangVien;
             private String phongHoc;
+            private Boolean isEditable;
+            private Boolean canCancel;
+            private String trangThai;
+            private String thoiGianKTDK;
 
             public RegisteredClassItem() {
             }
 
             public RegisteredClassItem(Long maHoSo, String maLHP, String tenHP, String tenLHP, Integer soTinChi,
                                        Integer thu, Integer tietBatDau, Integer soTiet, String tenGiangVien, String phongHoc) {
+                this(maHoSo, maLHP, tenHP, tenLHP, soTinChi, thu, tietBatDau, soTiet, tenGiangVien, phongHoc, true, false, "DANGHOC", null);
+            }
+
+            public RegisteredClassItem(Long maHoSo, String maLHP, String tenHP, String tenLHP, Integer soTinChi,
+                                       Integer thu, Integer tietBatDau, Integer soTiet, String tenGiangVien, String phongHoc,
+                                       Boolean isEditable, Boolean canCancel, String trangThai, String thoiGianKTDK) {
                 this.maHoSo = maHoSo;
                 this.maLHP = maLHP;
                 this.tenHP = tenHP;
@@ -420,6 +432,10 @@ public final class StudentResponse {
                 this.soTiet = soTiet;
                 this.tenGiangVien = tenGiangVien;
                 this.phongHoc = phongHoc;
+                this.isEditable = isEditable;
+                this.canCancel = canCancel;
+                this.trangThai = trangThai;
+                this.thoiGianKTDK = thoiGianKTDK;
             }
 
             public Long getMaHoSo() { return maHoSo; }
@@ -451,6 +467,18 @@ public final class StudentResponse {
 
             public String getPhongHoc() { return phongHoc; }
             public void setPhongHoc(String phongHoc) { this.phongHoc = phongHoc; }
+
+            public Boolean getIsEditable() { return isEditable; }
+            public void setIsEditable(Boolean isEditable) { this.isEditable = isEditable; }
+
+            public Boolean getCanCancel() { return canCancel; }
+            public void setCanCancel(Boolean canCancel) { this.canCancel = canCancel; }
+
+            public String getTrangThai() { return trangThai; }
+            public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
+
+            public String getThoiGianKTDK() { return thoiGianKTDK; }
+            public void setThoiGianKTDK(String thoiGianKTDK) { this.thoiGianKTDK = thoiGianKTDK; }
         }
     }
 

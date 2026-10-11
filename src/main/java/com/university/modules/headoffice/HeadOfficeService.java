@@ -26,6 +26,7 @@ public interface HeadOfficeService {
     HeadOfficeLecturerResponseDTO getLecturers(String khoa, int page, int limit);
 
     HeadOfficeStudentResponseDTO getStudents(String nienKhoa, String khoa, int page, int limit);
+    HeadOfficeStudentResponseDTO getStudents(String nienKhoa, String khoa, String keyword, int page, int limit);
 
     HeadOfficeStatisticsResponseDTO getStatistics(String maHocKy);
 

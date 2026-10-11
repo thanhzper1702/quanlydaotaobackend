@@ -36,10 +36,10 @@ public class StudentController extends BaseController {
 
     @GET
     @Path("/grades")
-    public Response getGrades() {
+    public Response getGrades(@QueryParam("maHocKy") String maHocKy) {
         try {
             String maSV = getRequiredStudentCode();
-            StudentGradeResponse dto = studentService.getGrades(maSV);
+            StudentGradeResponse dto = studentService.getGrades(maSV, maHocKy);
 
             Map<String, Object> meta = new LinkedHashMap<>();
             meta.put("diemTBTichLuy", dto.getDiemTBTichLuy());
@@ -52,6 +52,10 @@ public class StudentController extends BaseController {
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ApiResponse.error(500, e.getMessage())).build();
         }
+    }
+
+    public Response getGrades() {
+        return getGrades(null);
     }
 
     @GET

@@ -210,23 +210,34 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
     }
 
     @Override
-    public List<SinhVien> findStudents(String nienKhoa, String khoa, int page, int limit) {
+    public List<SinhVien> findStudents(String nienKhoa, String khoa, String keyword, int page, int limit) {
         return execute(em -> {
             StringBuilder sb = new StringBuilder("SELECT s FROM SinhVien s JOIN FETCH s.nguoiDung WHERE s.deleted = false");
-            if (nienKhoa != null && !nienKhoa.trim().isEmpty()) {
+            boolean hasNienKhoa = nienKhoa != null && !nienKhoa.trim().isEmpty() && !"all".equalsIgnoreCase(nienKhoa.trim());
+            boolean hasKhoa = khoa != null && !khoa.trim().isEmpty() && !"all".equalsIgnoreCase(khoa.trim());
+            boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+
+            if (hasNienKhoa) {
                 sb.append(" AND s.nienKhoa = :nienKhoa");
             }
-            if (khoa != null && !khoa.trim().isEmpty()) {
-                sb.append(" AND s.khoa = :khoa");
+            if (hasKhoa) {
+                sb.append(" AND (LOWER(s.khoa) = :khoaLower OR s.khoa = :khoa)");
+            }
+            if (hasKeyword) {
+                sb.append(" AND (LOWER(s.maSV) LIKE :kw OR LOWER(s.nguoiDung.hoTen) LIKE :kw)");
             }
             sb.append(" ORDER BY s.maSV ASC");
 
             TypedQuery<SinhVien> query = em.createQuery(sb.toString(), SinhVien.class);
-            if (nienKhoa != null && !nienKhoa.trim().isEmpty()) {
-                query.setParameter("nienKhoa", nienKhoa);
+            if (hasNienKhoa) {
+                query.setParameter("nienKhoa", nienKhoa.trim());
             }
-            if (khoa != null && !khoa.trim().isEmpty()) {
-                query.setParameter("khoa", khoa);
+            if (hasKhoa) {
+                query.setParameter("khoaLower", khoa.trim().toLowerCase());
+                query.setParameter("khoa", khoa.trim());
+            }
+            if (hasKeyword) {
+                query.setParameter("kw", "%" + keyword.trim().toLowerCase() + "%");
             }
 
             int firstResult = Math.max(0, (page - 1) * limit);
@@ -238,24 +249,52 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
     }
 
     @Override
-    public long countStudents(String nienKhoa, String khoa) {
+    public long countStudents(String nienKhoa, String khoa, String keyword) {
         return execute(em -> {
-            StringBuilder sb = new StringBuilder("SELECT COUNT(s) FROM SinhVien s WHERE s.deleted = false");
-            if (nienKhoa != null && !nienKhoa.trim().isEmpty()) {
+            boolean hasNienKhoa = nienKhoa != null && !nienKhoa.trim().isEmpty() && !"all".equalsIgnoreCase(nienKhoa.trim());
+            boolean hasKhoa = khoa != null && !khoa.trim().isEmpty() && !"all".equalsIgnoreCase(khoa.trim());
+            boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+
+            StringBuilder sb = new StringBuilder("SELECT COUNT(s) FROM SinhVien s");
+            if (hasKeyword) {
+                sb.append(" JOIN s.nguoiDung u");
+            }
+            sb.append(" WHERE s.deleted = false");
+
+            if (hasNienKhoa) {
                 sb.append(" AND s.nienKhoa = :nienKhoa");
             }
-            if (khoa != null && !khoa.trim().isEmpty()) {
-                sb.append(" AND s.khoa = :khoa");
+            if (hasKhoa) {
+                sb.append(" AND (LOWER(s.khoa) = :khoaLower OR s.khoa = :khoa)");
             }
+            if (hasKeyword) {
+                sb.append(" AND (LOWER(s.maSV) LIKE :kw OR LOWER(u.hoTen) LIKE :kw)");
+            }
+
             TypedQuery<Long> query = em.createQuery(sb.toString(), Long.class);
-            if (nienKhoa != null && !nienKhoa.trim().isEmpty()) {
-                query.setParameter("nienKhoa", nienKhoa);
+            if (hasNienKhoa) {
+                query.setParameter("nienKhoa", nienKhoa.trim());
             }
-            if (khoa != null && !khoa.trim().isEmpty()) {
-                query.setParameter("khoa", khoa);
+            if (hasKhoa) {
+                query.setParameter("khoaLower", khoa.trim().toLowerCase());
+                query.setParameter("khoa", khoa.trim());
             }
+            if (hasKeyword) {
+                query.setParameter("kw", "%" + keyword.trim().toLowerCase() + "%");
+            }
+
             return query.getSingleResult();
         });
+    }
+
+    @Override
+    public List<SinhVien> findStudents(String nienKhoa, String khoa, int page, int limit) {
+        return findStudents(nienKhoa, khoa, null, page, limit);
+    }
+
+    @Override
+    public long countStudents(String nienKhoa, String khoa) {
+        return countStudents(nienKhoa, khoa, null);
     }
 
     @Override

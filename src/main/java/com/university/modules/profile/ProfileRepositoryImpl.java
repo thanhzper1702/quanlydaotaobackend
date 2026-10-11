@@ -251,6 +251,33 @@ public class ProfileRepositoryImpl extends AbstractJpaRepository<NguoiDung, Stri
     }
 
     @Override
+    public Optional<String> findStudentPriority(String maSV) {
+        if (maSV == null || maSV.isBlank()) {
+            return Optional.empty();
+        }
+        return execute(em -> {
+            try {
+                com.university.core.model.SinhVienUuTien ut = em.createQuery(
+                        "SELECT s FROM SinhVienUuTien s WHERE s.maSV = :maSV AND s.deleted = false",
+                        com.university.core.model.SinhVienUuTien.class)
+                        .setParameter("maSV", maSV.trim())
+                        .getSingleResult();
+                if (ut != null && ut.getDienUuTien() != null) {
+                    switch (ut.getDienUuTien()) {
+                        case HONGHEO: return Optional.of("Hộ nghèo");
+                        case CONBLS: return Optional.of("Con thương binh / liệt sĩ");
+                        case KHUYETTAT: return Optional.of("Sinh viên khuyết tật");
+                        default: return Optional.of(ut.getDienUuTien().name());
+                    }
+                }
+                return Optional.empty();
+            } catch (NoResultException e) {
+                return Optional.empty();
+            }
+        });
+    }
+
+    @Override
     public boolean updatePassword(String cccd, String newHashedPassword) {
         if (cccd == null || newHashedPassword == null) {
             return false;

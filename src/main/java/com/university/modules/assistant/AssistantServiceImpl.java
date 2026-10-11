@@ -238,8 +238,12 @@ public class AssistantServiceImpl implements AssistantService {
                 if (courseClass.getGiangVien() == null) {
                     conflicts.add("Lớp học phần chưa có giảng viên: " + classId);
                 }
-                if (courseClass.getThoiGianBDDK() != null || courseClass.getThoiGianKTDK() != null) {
-                    conflicts.add("Lớp học phần đã được cấu hình đợt đăng ký: " + classId);
+                HocKy sem = courseClass.getHocKy();
+                if (sem != null) {
+                    LocalDate today = LocalDate.now();
+                    if (!today.isBefore(sem.getThoiGianBD())) {
+                        conflicts.add("Học kỳ " + sem.getMaHocKy() + " đã bắt đầu từ ngày " + sem.getThoiGianBD() + ". Quy chế đào tạo không cho phép mở đợt đăng ký khi học kỳ đang diễn ra");
+                    }
                 }
             }
         }
@@ -252,6 +256,15 @@ public class AssistantServiceImpl implements AssistantService {
 
         OffsetDateTime start = AssistantValidator.parseRegistrationTime(request.getThoiGianBD());
         OffsetDateTime end = AssistantValidator.parseRegistrationTime(request.getThoiGianKT());
+
+        for (String classId : classIds) {
+            LopHocPhan courseClass = repository.findClassById(classId).orElse(null);
+            if (courseClass != null && courseClass.getHocKy() != null) {
+                if (end.toLocalDate().isAfter(courseClass.getHocKy().getThoiGianBD())) {
+                    return AssistantResponses.Result.error(400, "Thời hạn kết thúc đợt đăng ký phải trước hoặc bằng ngày bắt đầu học kỳ (" + courseClass.getHocKy().getThoiGianBD() + ")");
+                }
+            }
+        }
         try {
             repository.updateRegistrationPeriods(classIds, start, end);
         } catch (IllegalArgumentException | IllegalStateException ex) {

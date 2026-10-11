@@ -50,6 +50,9 @@ public class HoSoHocPhan extends BaseEntity {
     @Column(name = "trangThai", length = 20, nullable = false)
     private TrangThaiHocPhan trangThai = TrangThaiHocPhan.DADANGKY;
 
+    @Column(name = "is_editable")
+    private Boolean isEditable = true;
+
     @PrePersist
     @Override
     protected void onCreate() {
@@ -66,6 +69,24 @@ public class HoSoHocPhan extends BaseEntity {
     }
 
     public HoSoHocPhan() {
+    }
+
+    public boolean isEditable() {
+        if (Boolean.FALSE.equals(this.isEditable)) {
+            return false;
+        }
+        if (this.lopHocPhan != null) {
+            return this.lopHocPhan.isEditable();
+        }
+        return true;
+    }
+
+    public Boolean getIsEditable() {
+        return isEditable();
+    }
+
+    public void setIsEditable(Boolean isEditable) {
+        this.isEditable = isEditable;
     }
 
     public Long getMaHoSo() {
@@ -106,6 +127,7 @@ public class HoSoHocPhan extends BaseEntity {
 
     public void setDiemQuaTrinh(BigDecimal diemQuaTrinh) {
         this.diemQuaTrinh = diemQuaTrinh;
+        tinhDiemVaKetQua();
     }
 
     public BigDecimal getDiemCuoiKy() {
@@ -114,6 +136,7 @@ public class HoSoHocPhan extends BaseEntity {
 
     public void setDiemCuoiKy(BigDecimal diemCuoiKy) {
         this.diemCuoiKy = diemCuoiKy;
+        tinhDiemVaKetQua();
     }
 
     public BigDecimal getDiemTongKet() {
@@ -184,6 +207,10 @@ public class HoSoHocPhan extends BaseEntity {
 
     public void tinhDiemVaKetQua() {
         tinhDiemVaKetQua(0.4, 0.6);
+    }
+
+    public void tinhDiemTongKet() {
+        tinhDiemVaKetQua();
     }
 
     public static KetQua quyDoiKetQuaChu(BigDecimal diem10) {

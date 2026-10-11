@@ -115,3 +115,6 @@ scratch/
 # ====================================================================
 doc/
 index.html
+
+# SmartTomcat plugin
+.smarttomcat/

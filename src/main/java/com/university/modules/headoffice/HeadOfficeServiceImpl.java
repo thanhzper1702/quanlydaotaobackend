@@ -162,10 +162,10 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
     }
 
     @Override
-    public HeadOfficeStudentResponseDTO getStudents(String nienKhoa, String khoa, int page, int limit) {
+    public HeadOfficeStudentResponseDTO getStudents(String nienKhoa, String khoa, String keyword, int page, int limit) {
         validatePage(page, limit);
-        long total = repository.countStudents(nienKhoa, khoa);
-        var items = repository.findStudents(nienKhoa, khoa, page, limit).stream()
+        long total = repository.countStudents(nienKhoa, khoa, keyword);
+        var items = repository.findStudents(nienKhoa, khoa, keyword, page, limit).stream()
             .map(student -> new HeadOfficeStudentResponseDTO.StudentItem(
                     student.getMaSV(),
                     student.getHoTen(),
@@ -176,6 +176,11 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
                     student.getAnhThe()))
             .collect(Collectors.toList());
         return new HeadOfficeStudentResponseDTO(items, page, limit, total);
+    }
+
+    @Override
+    public HeadOfficeStudentResponseDTO getStudents(String nienKhoa, String khoa, int page, int limit) {
+        return getStudents(nienKhoa, khoa, null, page, limit);
     }
 
     @Override

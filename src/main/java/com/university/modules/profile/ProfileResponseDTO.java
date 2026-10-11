@@ -35,6 +35,9 @@ public final class ProfileResponseDTO {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public static class UserProfileResponseDTO {
 
+        @JsonProperty("cccd")
+        private String cccd;
+
         @JsonProperty("maDinhDanh")
         private String maDinhDanh;
 
@@ -74,6 +77,13 @@ public final class ProfileResponseDTO {
         public UserProfileResponseDTO(String maDinhDanh, String hoTen, String ngaySinh, String gioiTinh,
                                       String email, String soDienThoai, String diaChi, String role,
                                       String anhThe, ThongTinHocVuDTO thongTinHocVu, ThongTinCanBoDTO thongTinCanBo) {
+            this(null, maDinhDanh, hoTen, ngaySinh, gioiTinh, email, soDienThoai, diaChi, role, anhThe, thongTinHocVu, thongTinCanBo);
+        }
+
+        public UserProfileResponseDTO(String cccd, String maDinhDanh, String hoTen, String ngaySinh, String gioiTinh,
+                                      String email, String soDienThoai, String diaChi, String role,
+                                      String anhThe, ThongTinHocVuDTO thongTinHocVu, ThongTinCanBoDTO thongTinCanBo) {
+            this.cccd = cccd;
             this.maDinhDanh = maDinhDanh;
             this.hoTen = hoTen;
             this.ngaySinh = ngaySinh;
@@ -87,93 +97,41 @@ public final class ProfileResponseDTO {
             this.thongTinCanBo = thongTinCanBo;
         }
 
-        public String getMaDinhDanh() {
-            return maDinhDanh;
-        }
+        public String getCccd() { return cccd; }
+        public void setCccd(String cccd) { this.cccd = cccd; }
 
-        public void setMaDinhDanh(String maDinhDanh) {
-            this.maDinhDanh = maDinhDanh;
-        }
+        public String getMaDinhDanh() { return maDinhDanh; }
+        public void setMaDinhDanh(String maDinhDanh) { this.maDinhDanh = maDinhDanh; }
 
-        public String getHoTen() {
-            return hoTen;
-        }
+        public String getHoTen() { return hoTen; }
+        public void setHoTen(String hoTen) { this.hoTen = hoTen; }
 
-        public void setHoTen(String hoTen) {
-            this.hoTen = hoTen;
-        }
+        public String getNgaySinh() { return ngaySinh; }
+        public void setNgaySinh(String ngaySinh) { this.ngaySinh = ngaySinh; }
 
-        public String getNgaySinh() {
-            return ngaySinh;
-        }
+        public String getGioiTinh() { return gioiTinh; }
+        public void setGioiTinh(String gioiTinh) { this.gioiTinh = gioiTinh; }
 
-        public void setNgaySinh(String ngaySinh) {
-            this.ngaySinh = ngaySinh;
-        }
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
 
-        public String getGioiTinh() {
-            return gioiTinh;
-        }
+        public String getSoDienThoai() { return soDienThoai; }
+        public void setSoDienThoai(String soDienThoai) { this.soDienThoai = soDienThoai; }
 
-        public void setGioiTinh(String gioiTinh) {
-            this.gioiTinh = gioiTinh;
-        }
+        public String getDiaChi() { return diaChi; }
+        public void setDiaChi(String diaChi) { this.diaChi = diaChi; }
 
-        public String getEmail() {
-            return email;
-        }
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
 
-        public void setEmail(String email) {
-            this.email = email;
-        }
+        public String getAnhThe() { return anhThe; }
+        public void setAnhThe(String anhThe) { this.anhThe = anhThe; }
 
-        public String getSoDienThoai() {
-            return soDienThoai;
-        }
+        public ThongTinHocVuDTO getThongTinHocVu() { return thongTinHocVu; }
+        public void setThongTinHocVu(ThongTinHocVuDTO thongTinHocVu) { this.thongTinHocVu = thongTinHocVu; }
 
-        public void setSoDienThoai(String soDienThoai) {
-            this.soDienThoai = soDienThoai;
-        }
-
-        public String getDiaChi() {
-            return diaChi;
-        }
-
-        public void setDiaChi(String diaChi) {
-            this.diaChi = diaChi;
-        }
-
-        public String getRole() {
-            return role;
-        }
-
-        public void setRole(String role) {
-            this.role = role;
-        }
-
-        public String getAnhThe() {
-            return anhThe;
-        }
-
-        public void setAnhThe(String anhThe) {
-            this.anhThe = anhThe;
-        }
-
-        public ThongTinHocVuDTO getThongTinHocVu() {
-            return thongTinHocVu;
-        }
-
-        public void setThongTinHocVu(ThongTinHocVuDTO thongTinHocVu) {
-            this.thongTinHocVu = thongTinHocVu;
-        }
-
-        public ThongTinCanBoDTO getThongTinCanBo() {
-            return thongTinCanBo;
-        }
-
-        public void setThongTinCanBo(ThongTinCanBoDTO thongTinCanBo) {
-            this.thongTinCanBo = thongTinCanBo;
-        }
+        public ThongTinCanBoDTO getThongTinCanBo() { return thongTinCanBo; }
+        public void setThongTinCanBo(ThongTinCanBoDTO thongTinCanBo) { this.thongTinCanBo = thongTinCanBo; }
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
         public static class ThongTinHocVuDTO {
@@ -192,56 +150,57 @@ public final class ProfileResponseDTO {
             @JsonProperty("gpaHienTai")
             private Double gpaHienTai;
 
+            @JsonProperty("lopSinhHoat")
+            private String lopSinhHoat;
+
+            @JsonProperty("dienUuTien")
+            private String dienUuTien;
+
+            @JsonProperty("trangThaiHocVu")
+            private String trangThaiHocVu;
+
             public ThongTinHocVuDTO() {
             }
 
             public ThongTinHocVuDTO(String nienKhoa, String khoa, String chuyenNganh, Integer soTinChiTichLuy, Double gpaHienTai) {
+                this(nienKhoa, khoa, chuyenNganh, soTinChiTichLuy, gpaHienTai, null, null, null);
+            }
+
+            public ThongTinHocVuDTO(String nienKhoa, String khoa, String chuyenNganh, Integer soTinChiTichLuy, Double gpaHienTai,
+                                   String lopSinhHoat, String dienUuTien, String trangThaiHocVu) {
                 this.nienKhoa = nienKhoa;
                 this.khoa = khoa;
                 this.chuyenNganh = chuyenNganh;
                 this.soTinChiTichLuy = soTinChiTichLuy;
                 this.gpaHienTai = gpaHienTai;
+                this.lopSinhHoat = lopSinhHoat;
+                this.dienUuTien = dienUuTien;
+                this.trangThaiHocVu = trangThaiHocVu;
             }
 
-            public String getNienKhoa() {
-                return nienKhoa;
-            }
+            public String getNienKhoa() { return nienKhoa; }
+            public void setNienKhoa(String nienKhoa) { this.nienKhoa = nienKhoa; }
 
-            public void setNienKhoa(String nienKhoa) {
-                this.nienKhoa = nienKhoa;
-            }
+            public String getKhoa() { return khoa; }
+            public void setKhoa(String khoa) { this.khoa = khoa; }
 
-            public String getKhoa() {
-                return khoa;
-            }
+            public String getChuyenNganh() { return chuyenNganh; }
+            public void setChuyenNganh(String chuyenNganh) { this.chuyenNganh = chuyenNganh; }
 
-            public void setKhoa(String khoa) {
-                this.khoa = khoa;
-            }
+            public Integer getSoTinChiTichLuy() { return soTinChiTichLuy; }
+            public void setSoTinChiTichLuy(Integer soTinChiTichLuy) { this.soTinChiTichLuy = soTinChiTichLuy; }
 
-            public String getChuyenNganh() {
-                return chuyenNganh;
-            }
+            public Double getGpaHienTai() { return gpaHienTai; }
+            public void setGpaHienTai(Double gpaHienTai) { this.gpaHienTai = gpaHienTai; }
 
-            public void setChuyenNganh(String chuyenNganh) {
-                this.chuyenNganh = chuyenNganh;
-            }
+            public String getLopSinhHoat() { return lopSinhHoat; }
+            public void setLopSinhHoat(String lopSinhHoat) { this.lopSinhHoat = lopSinhHoat; }
 
-            public Integer getSoTinChiTichLuy() {
-                return soTinChiTichLuy;
-            }
+            public String getDienUuTien() { return dienUuTien; }
+            public void setDienUuTien(String dienUuTien) { this.dienUuTien = dienUuTien; }
 
-            public void setSoTinChiTichLuy(Integer soTinChiTichLuy) {
-                this.soTinChiTichLuy = soTinChiTichLuy;
-            }
-
-            public Double getGpaHienTai() {
-                return gpaHienTai;
-            }
-
-            public void setGpaHienTai(Double gpaHienTai) {
-                this.gpaHienTai = gpaHienTai;
-            }
+            public String getTrangThaiHocVu() { return trangThaiHocVu; }
+            public void setTrangThaiHocVu(String trangThaiHocVu) { this.trangThaiHocVu = trangThaiHocVu; }
         }
 
         @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -258,6 +217,12 @@ public final class ProfileResponseDTO {
             @JsonProperty("nhiemKy")
             private String nhiemKy;
 
+            @JsonProperty("boMon")
+            private String boMon;
+
+            @JsonProperty("hocPhanGiangDay")
+            private String hocPhanGiangDay;
+
             public ThongTinCanBoDTO() {
             }
 
@@ -268,37 +233,32 @@ public final class ProfileResponseDTO {
                 this.nhiemKy = nhiemKy;
             }
 
-            public String getHocVi() {
-                return hocVi;
-            }
-
-            public void setHocVi(String hocVi) {
+            public ThongTinCanBoDTO(String hocVi, String khoa, String ngayBatDau, String nhiemKy, String boMon, String hocPhanGiangDay) {
                 this.hocVi = hocVi;
-            }
-
-            public String getKhoa() {
-                return khoa;
-            }
-
-            public void setKhoa(String khoa) {
                 this.khoa = khoa;
-            }
-
-            public String getNgayBatDau() {
-                return ngayBatDau;
-            }
-
-            public void setNgayBatDau(String ngayBatDau) {
                 this.ngayBatDau = ngayBatDau;
-            }
-
-            public String getNhiemKy() {
-                return nhiemKy;
-            }
-
-            public void setNhiemKy(String nhiemKy) {
                 this.nhiemKy = nhiemKy;
+                this.boMon = boMon;
+                this.hocPhanGiangDay = hocPhanGiangDay;
             }
+
+            public String getHocVi() { return hocVi; }
+            public void setHocVi(String hocVi) { this.hocVi = hocVi; }
+
+            public String getKhoa() { return khoa; }
+            public void setKhoa(String khoa) { this.khoa = khoa; }
+
+            public String getNgayBatDau() { return ngayBatDau; }
+            public void setNgayBatDau(String ngayBatDau) { this.ngayBatDau = ngayBatDau; }
+
+            public String getNhiemKy() { return nhiemKy; }
+            public void setNhiemKy(String nhiemKy) { this.nhiemKy = nhiemKy; }
+
+            public String getBoMon() { return boMon; }
+            public void setBoMon(String boMon) { this.boMon = boMon; }
+
+            public String getHocPhanGiangDay() { return hocPhanGiangDay; }
+            public void setHocPhanGiangDay(String hocPhanGiangDay) { this.hocPhanGiangDay = hocPhanGiangDay; }
         }
     }
 }
