@@ -17,9 +17,9 @@ public final class AssistantValidator {
     public static final int MAX_PAGE_SIZE = 100;
     private static final ZoneId BUSINESS_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
     private static final Set<String> REQUEST_STATUSES =
-            Set.of("DAGUI", "DATIEPNHAN", "DADUYET", "DATUCHOI");
+            Set.of("DAGUI", "DADUYET", "DATUCHOI");
     private static final Set<String> REQUEST_STATUS_TARGETS =
-            Set.of("DATIEPNHAN", "DADUYET", "DATUCHOI");
+            Set.of("DADUYET", "DATUCHOI");
 
     private AssistantValidator() {
     }
@@ -144,7 +144,7 @@ public final class AssistantValidator {
         if (status == null) {
             errors.add("trangThai là bắt buộc");
         } else if (!REQUEST_STATUS_TARGETS.contains(status)) {
-            errors.add("trangThai chỉ nhận DATIEPNHAN, DADUYET hoặc DATUCHOI");
+            errors.add("trangThai chỉ nhận DADUYET hoặc DATUCHOI");
         }
         return errors;
     }
@@ -154,7 +154,7 @@ public final class AssistantValidator {
         if (status != null) {
             String normalized = normalizeStatus(status);
             if (normalized == null || !REQUEST_STATUSES.contains(normalized)) {
-                errors.add("trangThai chỉ nhận DAGUI, DATIEPNHAN, DADUYET hoặc DATUCHOI");
+                errors.add("trangThai chỉ nhận DAGUI, DADUYET hoặc DATUCHOI");
             }
         }
         return errors;

@@ -27,14 +27,10 @@ class AssistantClassRequestWorkflowTest {
             Clock.fixed(Instant.parse("2026-10-08T00:00:00Z"), ZoneOffset.UTC);
 
     @Test
-    void acceptsAllFourLockedTransitionsAndPersistsOnlyTheNewStatus() {
-        assertSuccessfulTransition(TrangThaiYeuCau.DAGUI, "DATIEPNHAN",
-                TrangThaiYeuCau.DATIEPNHAN, "Đã tiếp nhận yêu cầu mở lớp");
-        assertSuccessfulTransition(TrangThaiYeuCau.DATIEPNHAN, "DADUYET",
+    void acceptsTerminalTransitionsFromPendingAndPersistsOnlyTheNewStatus() {
+        assertSuccessfulTransition(TrangThaiYeuCau.DAGUI, "DADUYET",
                 TrangThaiYeuCau.DADUYET, "Đã duyệt yêu cầu mở lớp");
         assertSuccessfulTransition(TrangThaiYeuCau.DAGUI, "DATUCHOI",
-                TrangThaiYeuCau.DATUCHOI, "Đã từ chối yêu cầu mở lớp");
-        assertSuccessfulTransition(TrangThaiYeuCau.DATIEPNHAN, "DATUCHOI",
                 TrangThaiYeuCau.DATUCHOI, "Đã từ chối yêu cầu mở lớp");
     }
 
@@ -48,16 +44,14 @@ class AssistantClassRequestWorkflowTest {
 
         RecordingRepository missing = new RecordingRepository(null);
         AssistantResponses.Result<Void> notFound = service(missing.repository()).updateClassRequestStatus(
-                "YC-404", new AssistantRequests.UpdateClassRequestStatusRequest("DATIEPNHAN"));
+                "YC-404", new AssistantRequests.UpdateClassRequestStatusRequest("DADUYET"));
         assertEquals(404, notFound.getStatusCode());
         assertNull(missing.saved);
     }
 
     @Test
     void rejectsSkipRepeatAndTerminalTransitionsWithoutMutatingOrWriting() {
-        assertRejectedTransition(TrangThaiYeuCau.DAGUI, "DADUYET");
-        assertRejectedTransition(TrangThaiYeuCau.DATIEPNHAN, "DATIEPNHAN");
-        for (String target : new String[]{"DATIEPNHAN", "DADUYET", "DATUCHOI"}) {
+        for (String target : new String[]{"DADUYET", "DATUCHOI"}) {
             assertRejectedTransition(TrangThaiYeuCau.DADUYET, target);
             assertRejectedTransition(TrangThaiYeuCau.DATUCHOI, target);
         }
@@ -72,7 +66,7 @@ class AssistantClassRequestWorkflowTest {
                         ? result : throwUnexpected(method.getName()));
 
         Response response = new AssistantController(service).updateClassRequestStatus(
-                "YC-01", new AssistantRequests.UpdateClassRequestStatusRequest("DATIEPNHAN"));
+                "YC-01", new AssistantRequests.UpdateClassRequestStatusRequest("DADUYET"));
         assertEquals(200, response.getStatus());
         assertInstanceOf(ApiResponse.class, response.getEntity());
     }

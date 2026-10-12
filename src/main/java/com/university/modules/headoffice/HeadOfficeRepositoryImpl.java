@@ -411,9 +411,8 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
     public List<YeuCauMoLop> findPendingClassApprovals() {
         return execute(em -> em.createQuery(
                 "SELECT y FROM YeuCauMoLop y JOIN FETCH y.sinhVien s JOIN FETCH s.nguoiDung JOIN FETCH y.hocPhan " +
-                "WHERE (y.trangThai = :choduyet OR y.trangThai = :datiepnhan) AND y.deleted = false ORDER BY y.ngayTao ASC", YeuCauMoLop.class)
-                .setParameter("choduyet", TrangThaiYeuCau.CHODUYET)
-                .setParameter("datiepnhan", TrangThaiYeuCau.DATIEPNHAN)
+                "WHERE y.trangThai = :trangThai AND y.deleted = false ORDER BY y.ngayTao ASC", YeuCauMoLop.class)
+                .setParameter("trangThai", TrangThaiYeuCau.DAGUI)
                 .getResultList());
     }
 

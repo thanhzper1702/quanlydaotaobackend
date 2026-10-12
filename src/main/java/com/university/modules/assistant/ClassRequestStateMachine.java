@@ -17,13 +17,10 @@ public final class ClassRequestStateMachine {
 
     static {
         TRANSITIONS.put(TrangThaiYeuCau.DAGUI,
-                EnumSet.of(TrangThaiYeuCau.DATIEPNHAN, TrangThaiYeuCau.DATUCHOI));
-        TRANSITIONS.put(TrangThaiYeuCau.DATIEPNHAN,
                 EnumSet.of(TrangThaiYeuCau.DADUYET, TrangThaiYeuCau.DATUCHOI));
         TRANSITIONS.put(TrangThaiYeuCau.DADUYET, EnumSet.noneOf(TrangThaiYeuCau.class));
         TRANSITIONS.put(TrangThaiYeuCau.DATUCHOI, EnumSet.noneOf(TrangThaiYeuCau.class));
 
-        MESSAGES.put(TrangThaiYeuCau.DATIEPNHAN, "Đã tiếp nhận yêu cầu mở lớp");
         MESSAGES.put(TrangThaiYeuCau.DADUYET, "Đã duyệt yêu cầu mở lớp");
         MESSAGES.put(TrangThaiYeuCau.DATUCHOI, "Đã từ chối yêu cầu mở lớp");
     }
@@ -39,9 +36,9 @@ public final class ClassRequestStateMachine {
     public static TrangThaiYeuCau parseTarget(String status) {
         String normalized = AssistantValidator.normalizeStatus(status);
         if (normalized == null
-                || !Set.of("DATIEPNHAN", "DADUYET", "DATUCHOI").contains(normalized)) {
+                || !Set.of("DADUYET", "DATUCHOI").contains(normalized)) {
             throw new IllegalArgumentException(
-                    "Trạng thái đích chỉ nhận DATIEPNHAN, DADUYET hoặc DATUCHOI");
+                    "Trạng thái đích chỉ nhận DADUYET hoặc DATUCHOI");
         }
         return TrangThaiYeuCau.valueOf(normalized);
     }

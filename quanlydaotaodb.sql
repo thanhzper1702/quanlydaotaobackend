@@ -195,7 +195,7 @@ CREATE TABLE YeuCauMoLop (
     deleted BOOLEAN NOT NULL DEFAULT FALSE,
     CONSTRAINT fk_ycml_sinhvien FOREIGN KEY (maSV) REFERENCES SinhVien(maSV) ON DELETE CASCADE,
     CONSTRAINT fk_ycml_hocphan FOREIGN KEY (maHocPhan) REFERENCES HocPhan(maHP) ON DELETE RESTRICT,
-    CONSTRAINT chk_ycml_trangthai CHECK (trangThai IN ('DAGUI', 'DATIEPNHAN', 'CHODUYET', 'DADUYET', 'DATUCHOI'))
+    CONSTRAINT chk_ycml_trangthai CHECK (trangThai IN ('DAGUI', 'DADUYET', 'DATUCHOI'))
 );
 
 -- Lịch Học chi tiết từng ngày của Lớp Học Phần

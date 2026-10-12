@@ -126,12 +126,8 @@ public class YeuCauMoLop extends BaseEntity {
         return TrangThaiYeuCau.DAGUI.equals(this.trangThai);
     }
 
-    public boolean isDaTiepNhan() {
-        return TrangThaiYeuCau.DATIEPNHAN.equals(this.trangThai);
-    }
-
     public boolean isChoDuyet() {
-        return TrangThaiYeuCau.CHODUYET.equals(this.trangThai);
+        return TrangThaiYeuCau.DAGUI.equals(this.trangThai);
     }
 
     public boolean isDaDuyet() {
