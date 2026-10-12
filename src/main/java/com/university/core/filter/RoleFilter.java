@@ -71,7 +71,19 @@ public class RoleFilter implements ContainerRequestFilter {
             return;
         }
 
-        if (path.startsWith("head-office") && !"TRUONGPHONG".equals(role)) {
+        boolean isLecturerLookupForAssistant = "GET".equalsIgnoreCase(method)
+                && "head-office/lecturers".equals(path);
+        if (isLecturerLookupForAssistant && !"TROLY".equals(role) && !"TRUONGPHONG".equals(role)) {
+            requestContext.abortWith(
+                    Response.status(Response.Status.FORBIDDEN)
+                            .type(MediaType.APPLICATION_JSON)
+                            .entity(ApiResponse.error(Response.Status.FORBIDDEN.getStatusCode(), "Access denied: Requires TROLY or TRUONGPHONG role"))
+                            .build()
+            );
+            return;
+        }
+
+        if (path.startsWith("head-office") && !isLecturerLookupForAssistant && !"TRUONGPHONG".equals(role)) {
             requestContext.abortWith(
                     Response.status(Response.Status.FORBIDDEN)
                             .type(MediaType.APPLICATION_JSON)
