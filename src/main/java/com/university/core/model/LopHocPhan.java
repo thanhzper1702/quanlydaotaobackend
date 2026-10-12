@@ -40,7 +40,7 @@ public class LopHocPhan extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "trangThai", length = 20, nullable = false)
-    private TrangThaiLop trangThai = TrangThaiLop.MODANGKY;
+    private TrangThaiLop trangThai = TrangThaiLop.CHUA_MO;
 
     @Column(name = "tietBatDau", nullable = false)
     private Integer tietBatDau;

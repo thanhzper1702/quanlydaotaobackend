@@ -78,7 +78,7 @@ public final class AssistantMapper {
         entity.setSoTiet(request.getSoTiet());
         entity.setSiSoToiDa(request.getSiSoToiDa());
         entity.setSiSoHienTai(0);
-        entity.setTrangThai(TrangThaiLop.MODANGKY);
+        entity.setTrangThai(TrangThaiLop.CHUA_MO);
         entity.setDeleted(false);
         LocalDateTime now = LocalDateTime.now();
         entity.setCreatedAt(now);

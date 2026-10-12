@@ -8,6 +8,7 @@ import com.university.core.model.LichHoc;
 import com.university.core.model.LopHocPhan;
 import com.university.core.model.TroLyDaoTao;
 import com.university.core.model.YeuCauMoLop;
+import com.university.core.model.enums.TrangThaiLop;
 import com.university.core.model.enums.TrangThaiYeuCau;
 import com.university.core.repository.AbstractJpaRepository;
 import jakarta.persistence.NoResultException;
@@ -285,6 +286,7 @@ public class AssistantRepositoryImpl extends AbstractJpaRepository<TroLyDaoTao, 
             classes.forEach(l -> {
                 l.setThoiGianBDDK(bddk);
                 l.setThoiGianKTDK(ktdk);
+                l.setTrangThai(TrangThaiLop.MODANGKY);
             });
         });
     }
