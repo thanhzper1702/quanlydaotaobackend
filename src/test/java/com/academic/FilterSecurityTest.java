@@ -156,6 +156,13 @@ public class FilterSecurityTest {
         roleFilter.filter(ctxTl);
         assertNull(ctxTl.abortedResponse);
 
+        // Assistant can read the course catalog used by the create-class form.
+        MockRequestContext ctxTlCourses = new MockRequestContext("GET", "head-office/courses");
+        ctxTlCourses.headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + assistantToken);
+        authFilter.filter(ctxTlCourses);
+        roleFilter.filter(ctxTlCourses);
+        assertNull(ctxTlCourses.abortedResponse);
+
         // Assistant creating notification -> OK
         MockRequestContext ctxTlNotif = new MockRequestContext("POST", "notifications");
         ctxTlNotif.headers.put(HttpHeaders.AUTHORIZATION, "Bearer " + assistantToken);

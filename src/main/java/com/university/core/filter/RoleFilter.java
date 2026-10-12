@@ -71,9 +71,9 @@ public class RoleFilter implements ContainerRequestFilter {
             return;
         }
 
-        boolean isLecturerLookupForAssistant = "GET".equalsIgnoreCase(method)
-                && "head-office/lecturers".equals(path);
-        if (isLecturerLookupForAssistant && !"TROLY".equals(role) && !"TRUONGPHONG".equals(role)) {
+        boolean isHeadOfficeLookupForAssistant = "GET".equalsIgnoreCase(method)
+                && ("head-office/lecturers".equals(path) || "head-office/courses".equals(path));
+        if (isHeadOfficeLookupForAssistant && !"TROLY".equals(role) && !"TRUONGPHONG".equals(role)) {
             requestContext.abortWith(
                     Response.status(Response.Status.FORBIDDEN)
                             .type(MediaType.APPLICATION_JSON)
@@ -83,7 +83,7 @@ public class RoleFilter implements ContainerRequestFilter {
             return;
         }
 
-        if (path.startsWith("head-office") && !isLecturerLookupForAssistant && !"TRUONGPHONG".equals(role)) {
+        if (path.startsWith("head-office") && !isHeadOfficeLookupForAssistant && !"TRUONGPHONG".equals(role)) {
             requestContext.abortWith(
                     Response.status(Response.Status.FORBIDDEN)
                             .type(MediaType.APPLICATION_JSON)
