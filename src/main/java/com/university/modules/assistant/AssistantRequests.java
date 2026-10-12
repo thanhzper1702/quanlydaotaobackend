@@ -58,6 +58,8 @@ public final class AssistantRequests {
         private Integer thu;
         private Integer tietBD;
         private Integer soTiet;
+        private String phongHoc;
+        private String trangThai;
 
         public UpdateClassRequest() {
         }
@@ -81,6 +83,10 @@ public final class AssistantRequests {
         public void setTietBD(Integer tietBD) { this.tietBD = tietBD; }
         public Integer getSoTiet() { return soTiet; }
         public void setSoTiet(Integer soTiet) { this.soTiet = soTiet; }
+        public String getPhongHoc() { return phongHoc; }
+        public void setPhongHoc(String phongHoc) { this.phongHoc = phongHoc; }
+        public String getTrangThai() { return trangThai; }
+        public void setTrangThai(String trangThai) { this.trangThai = trangThai; }
     }
 
     public static class AssignLecturerRequest {

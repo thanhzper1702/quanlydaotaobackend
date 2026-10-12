@@ -175,6 +175,69 @@ class AssistantClassLifecycleTest {
     }
 
     @Test
+    void updatePersistsRequestedRoomForEveryClassSchedule() {
+        HocKy semester = semester(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 12, 14));
+        LopHocPhan existing = courseClass(semester);
+        LichHoc first = new LichHoc();
+        first.setMaLichHoc("LH-01");
+        first.setNgayHoc(LocalDate.of(2026, 9, 7));
+        first.setPhongHoc("A1-101");
+        LichHoc second = new LichHoc();
+        second.setMaLichHoc("LH-02");
+        second.setNgayHoc(LocalDate.of(2026, 9, 14));
+        second.setPhongHoc("A1-101");
+        RecordingRepository recording = new RecordingRepository(Map.of(
+                "findClassById", Optional.of(existing), "findSchedulesByClass", List.of(first, second)));
+        AssistantRequests.UpdateClassRequest request = new AssistantRequests.UpdateClassRequest();
+        request.setPhongHoc("B2-302");
+
+        AssistantResponses.Result<Void> result = service(recording.repository()).updateClass("LHP-01", request);
+
+        assertEquals(200, result.getStatusCode());
+        assertEquals("updateClassWithSchedules", recording.lastWrite);
+        assertTrue(recording.schedules.stream().allMatch(schedule -> "B2-302".equals(schedule.getPhongHoc())));
+    }
+
+    @Test
+    void updateReturnsAvailableRoomsWhenRequestedRoomConflicts() {
+        HocKy semester = semester(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 12, 14));
+        LopHocPhan existing = courseClass(semester);
+        LichHoc schedule = new LichHoc();
+        schedule.setMaLichHoc("LH-01");
+        schedule.setNgayHoc(LocalDate.of(2026, 9, 7));
+        schedule.setPhongHoc("A1-101");
+        RecordingRepository recording = new RecordingRepository(Map.of(
+                "findClassById", Optional.of(existing), "findSchedulesByClass", List.of(schedule),
+                "conflictingRooms", Set.of("B2-302"),
+                "updateClassWithSchedulesException", new IllegalArgumentException("Room conflict")));
+        AssistantRequests.UpdateClassRequest request = new AssistantRequests.UpdateClassRequest();
+        request.setPhongHoc("B2-302");
+
+        AssistantResponses.Result<Void> result = service(recording.repository()).updateClass("LHP-01", request);
+
+        assertEquals(409, result.getStatusCode());
+        assertTrue(result.getMessage().contains("B2-302 bị trùng lịch"));
+        assertTrue(result.getErrors().contains("A1-101"));
+        assertFalse(result.getErrors().contains("B2-302"));
+    }
+
+    @Test
+    void updateRejectsManualLockInsteadOfSilentlyIgnoringIt() {
+        HocKy semester = semester(LocalDate.of(2026, 9, 1), LocalDate.of(2026, 12, 14));
+        LopHocPhan existing = courseClass(semester);
+        RecordingRepository recording = new RecordingRepository(
+                Map.of("findClassById", Optional.of(existing)));
+        AssistantRequests.UpdateClassRequest request = new AssistantRequests.UpdateClassRequest();
+        request.setTrangThai("DA_KHOA");
+
+        AssistantResponses.Result<Void> result = service(recording.repository()).updateClass("LHP-01", request);
+
+        assertEquals(409, result.getStatusCode());
+        assertTrue(result.getMessage().contains("Không thể khóa lớp khi học kỳ đang diễn ra"));
+        assertNull(recording.lastWrite);
+    }
+
+    @Test
     void controllerPassesAuthenticatedAssistantAndReturnsCreatedEnvelope() {
         AssistantResponses.Result<AssistantResponses.CreateClassData> created =
                 AssistantResponses.Result.success(201, "created",
@@ -244,6 +307,9 @@ class AssistantClassLifecycleTest {
                         String name = method.getName();
                         if (name.equals("createClassWithSchedules")
                                 || name.equals("updateClassWithSchedules")) {
+                            if (values.containsKey(name + "Exception")) {
+                                throw (IllegalArgumentException) values.get(name + "Exception");
+                            }
                             lastWrite = name;
                             courseClass = (LopHocPhan) args[0];
                             schedules = List.copyOf((List<LichHoc>) args[1]);

@@ -64,6 +64,12 @@ public class AssistantServiceImpl implements AssistantService {
     @Override
     public AssistantResponses.Result<List<AssistantResponses.ClassDTO>> getClassesBySemester(
             String maHocKy, int page, int limit) {
+        return getClassesBySemester(maHocKy, null, page, limit);
+    }
+
+    @Override
+    public AssistantResponses.Result<List<AssistantResponses.ClassDTO>> getClassesBySemester(
+            String maHocKy, String search, int page, int limit) {
         List<String> errors = validationErrors("maHocKy", maHocKy, page, limit);
         if (!errors.isEmpty()) {
             return AssistantResponses.Result.error(400, "Dữ liệu không hợp lệ", errors);
@@ -74,13 +80,29 @@ public class AssistantServiceImpl implements AssistantService {
             return AssistantResponses.Result.error(404, "Không tìm thấy học kỳ");
         }
 
-        List<AssistantResponses.ClassDTO> data = repository
-                .findClassesBySemester(semesterId, page, limit)
+        String keyword = search == null ? "" : search.trim().toLowerCase(Locale.ROOT);
+        List<AssistantResponses.ClassDTO> allClasses = repository
+                .findClassesBySemester(semesterId, keyword.isEmpty() ? page : 1,
+                        keyword.isEmpty() ? limit : Integer.MAX_VALUE)
                 .stream()
                 .map(courseClass -> AssistantMapper.toClassDTO(
                         courseClass, representativeRoom(courseClass.getMaLHP())))
                 .toList();
-        long totalItems = repository.countClassesBySemester(semesterId);
+        if (keyword.isEmpty()) {
+            long totalItems = repository.countClassesBySemester(semesterId);
+            AssistantResponses.ClassMeta meta = new AssistantResponses.ClassMeta(
+                    page, limit, totalItems, totalPages(totalItems, limit), semesterId);
+            return AssistantResponses.Result.success(
+                    200, "Danh sách LHP trong kỳ kèm meta", allClasses, meta);
+        }
+
+        List<AssistantResponses.ClassDTO> matchedClasses = allClasses.stream()
+                .filter(courseClass -> matchesSearch(courseClass, keyword))
+                .toList();
+        int fromIndex = Math.min((page - 1) * limit, matchedClasses.size());
+        int toIndex = Math.min(fromIndex + limit, matchedClasses.size());
+        List<AssistantResponses.ClassDTO> data = matchedClasses.subList(fromIndex, toIndex);
+        long totalItems = matchedClasses.size();
         AssistantResponses.ClassMeta meta = new AssistantResponses.ClassMeta(
                 page, limit, totalItems, totalPages(totalItems, limit), semesterId);
         return AssistantResponses.Result.success(
@@ -145,6 +167,15 @@ public class AssistantServiceImpl implements AssistantService {
             return AssistantResponses.Result.error(404, "Không tìm thấy lớp học phần");
         }
 
+        if (request != null && request.getTrangThai() != null && !request.getTrangThai().isBlank()) {
+            String requestedStatus = AssistantValidator.normalizeStatus(request.getTrangThai());
+            if ("DA_KHOA".equals(requestedStatus) || "KETTHUC".equals(requestedStatus)) {
+                return AssistantResponses.Result.error(409,
+                        "Không thể khóa lớp khi học kỳ đang diễn ra; trạng thái Đã khóa được hệ thống tự động cập nhật khi học kỳ kết thúc");
+            }
+            return AssistantResponses.Result.error(400, "Trạng thái lớp không hợp lệ");
+        }
+
         List<String> errors = AssistantValidator.validateUpdateClass(
                 request, valueOrZero(courseClass.getSiSoHienTai()), courseClass.getThu(),
                 courseClass.getTietBatDau(), courseClass.getSoTiet());
@@ -153,12 +184,22 @@ public class AssistantServiceImpl implements AssistantService {
         }
 
         boolean scheduleChanged = scheduleChanged(request, courseClass);
+        String requestedRoom = request.getPhongHoc() == null ? null : request.getPhongHoc().trim();
+        List<LichHoc> currentSchedules = requestedRoom == null
+                ? List.of() : repository.findSchedulesByClass(classId);
+        boolean roomChanged = currentSchedules.stream()
+                .anyMatch(schedule -> !requestedRoom.equals(schedule.getPhongHoc()));
         AssistantMapper.applyClassUpdate(request, courseClass);
+        List<LichHoc> schedules = List.of();
         try {
-            if (scheduleChanged) {
+            if (scheduleChanged || roomChanged) {
                 HocKy semester = courseClass.getHocKy();
-                List<LichHoc> schedules = generateConflictFreeSchedules(
-                        courseClass, semester, courseClass.getMaLHP());
+                schedules = scheduleChanged
+                        ? generateConflictFreeSchedules(courseClass, semester, courseClass.getMaLHP())
+                        : currentSchedules;
+                if (requestedRoom != null) {
+                    schedules.forEach(schedule -> schedule.setPhongHoc(requestedRoom));
+                }
                 repository.updateClassWithSchedules(courseClass, schedules);
             } else {
                 repository.saveClass(courseClass);
@@ -166,6 +207,11 @@ public class AssistantServiceImpl implements AssistantService {
         } catch (IllegalStateException exception) {
             return AssistantResponses.Result.error(409, "Không còn phòng trống phù hợp cho lịch học");
         } catch (IllegalArgumentException exception) {
+            if (requestedRoom != null) {
+                return AssistantResponses.Result.error(409,
+                        "Phòng " + requestedRoom + " bị trùng lịch. Vui lòng chọn một phòng còn trống.",
+                        availableRooms(courseClass, schedules, classId));
+            }
             return AssistantResponses.Result.error(409, "Không thể cập nhật lớp học phần do dữ liệu bị xung đột");
         }
         return AssistantResponses.Result.success(200, "Cập nhật lớp học phần thành công");
@@ -467,8 +513,27 @@ public class AssistantServiceImpl implements AssistantService {
                 .orElse(null);
     }
 
+    private List<String> availableRooms(LopHocPhan courseClass, List<LichHoc> schedules, String classId) {
+        return MockRoomProvider.DEFAULT_ROOMS.stream()
+                .filter(room -> schedules.stream().allMatch(schedule -> !repository.hasRoomConflictExcludingClass(
+                        schedule.getNgayHoc(), room, courseClass.getTietBatDau(), courseClass.getSoTiet(), classId)))
+                .toList();
+    }
+
     private static boolean isEditable(HocKy semester, LocalDate today) {
         return semester.getThoiGianKT() != null && !semester.getThoiGianKT().isBefore(today);
+    }
+
+    private static boolean matchesSearch(AssistantResponses.ClassDTO courseClass, String keyword) {
+        return containsIgnoreCase(courseClass.getMaLHP(), keyword)
+                || containsIgnoreCase(courseClass.getTenLHP(), keyword)
+                || containsIgnoreCase(courseClass.getMaHP(), keyword)
+                || containsIgnoreCase(courseClass.getTenHP(), keyword)
+                || containsIgnoreCase(courseClass.getTenGiangVien(), keyword);
+    }
+
+    private static boolean containsIgnoreCase(String value, String keyword) {
+        return value != null && value.toLowerCase(Locale.ROOT).contains(keyword);
     }
 
     private static int totalPages(long totalItems, int pageSize) {

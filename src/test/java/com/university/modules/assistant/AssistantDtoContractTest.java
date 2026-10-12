@@ -38,9 +38,10 @@ class AssistantDtoContractTest {
         assertEquals(1, create.getTietBD());
 
         AssistantRequests.UpdateClassRequest update = objectMapper.readValue("""
-                {"tenLHP":"Lớp 01","siSoToiDa":60,"thu":2,"tietBD":1,"soTiet":3}
+                {"tenLHP":"Lớp 01","siSoToiDa":60,"thu":2,"tietBD":1,"soTiet":3,"phongHoc":"B2-302"}
                 """, AssistantRequests.UpdateClassRequest.class);
         assertEquals(60, update.getSiSoToiDa());
+        assertEquals("B2-302", update.getPhongHoc());
 
         AssistantRequests.AssignLecturerRequest assign = objectMapper.readValue(
                 "{\"maGV\":\"GV012\"}", AssistantRequests.AssignLecturerRequest.class);

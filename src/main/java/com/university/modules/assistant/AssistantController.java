@@ -30,8 +30,13 @@ public class AssistantController extends BaseController {
     @GET
     @Path("/semesters/{maHocKy}/classes")
     public Response getClassesBySemester(@PathParam("maHocKy") String maHocKy,
+                                        @QueryParam("search") String search,
                                         @QueryParam("page") @DefaultValue("1") int page,
                                         @QueryParam("limit") @DefaultValue("10") int limit) {
+        return toResponse(assistantService.getClassesBySemester(maHocKy, search, page, limit));
+    }
+
+    public Response getClassesBySemester(String maHocKy, int page, int limit) {
         return toResponse(assistantService.getClassesBySemester(maHocKy, page, limit));
     }
 

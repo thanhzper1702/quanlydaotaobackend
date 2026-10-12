@@ -9,6 +9,11 @@ public interface AssistantService {
     AssistantResponses.Result<List<AssistantResponses.ClassDTO>> getClassesBySemester(
             String maHocKy, int page, int limit);
 
+    default AssistantResponses.Result<List<AssistantResponses.ClassDTO>> getClassesBySemester(
+            String maHocKy, String search, int page, int limit) {
+        return getClassesBySemester(maHocKy, page, limit);
+    }
+
     AssistantResponses.Result<AssistantResponses.CreateClassData> createClass(
             String maHocKy, String maNV, AssistantRequests.CreateClassRequest request);
 
