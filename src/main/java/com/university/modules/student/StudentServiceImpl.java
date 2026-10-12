@@ -349,11 +349,11 @@ public class StudentServiceImpl implements StudentService {
             throw new StudentBusinessException(400, "Mã sinh viên không hợp lệ");
         }
         if (request == null || request.getMaLHP() == null || request.getMaLHP().isBlank()) {
-            throw new StudentBusinessException(400, "MĂ£ lá»›p há»c pháº§n khĂ´ng Ä‘Æ°á»£c Ä‘á»ƒ trá»‘ng");
+            throw new StudentBusinessException(400, "Mã lớp học phần không được để trống");
         }
 
         LopHocPhan lhp = studentRepository.findClassByMaLHP(request.getMaLHP().trim())
-                .orElseThrow(() -> new StudentBusinessException(404, "KhĂ´ng tĂ¬m tháº¥y lá»›p há»c pháº§n " + request.getMaLHP()));
+                .orElseThrow(() -> new StudentBusinessException(404, "Không tìm thấy lớp học phần " + request.getMaLHP()));
 
         SinhVien sv = studentRepository.findByMaSV(maSV)
                 .orElseThrow(() -> new StudentBusinessException(404, "Không tìm thấy hồ sơ sinh viên " + maSV));
@@ -365,26 +365,26 @@ public class StudentServiceImpl implements StudentService {
         }
 
         if (lhp.getTrangThai() != TrangThaiLop.MODANGKY) {
-            throw new StudentBusinessException(400, "Lá»›p Ä‘Ă£ Ä‘áº§y sÄ© sá»‘ hoáº·c chÆ°a tá»›i giá» má»Ÿ cá»•ng");
+            throw new StudentBusinessException(400, "Lớp " + lhp.getMaLHP() + " chưa mở đăng ký");
         }
 
         OffsetDateTime now = OffsetDateTime.now();
         if (lhp.getThoiGianBDDK() != null && now.isBefore(lhp.getThoiGianBDDK())) {
-            throw new StudentBusinessException(400, "Lá»›p Ä‘Ă£ Ä‘áº§y sÄ© sá»‘ hoáº·c chÆ°a tá»›i giá» má»Ÿ cá»•ng");
+            throw new StudentBusinessException(400, "Đợt đăng ký của lớp " + lhp.getMaLHP() + " chưa bắt đầu");
         }
         if (lhp.getThoiGianKTDK() != null && now.isAfter(lhp.getThoiGianKTDK())) {
-            throw new StudentBusinessException(400, "Lá»›p Ä‘Ă£ Ä‘áº§y sÄ© sá»‘ hoáº·c chÆ°a tá»›i giá» má»Ÿ cá»•ng");
+            throw new StudentBusinessException(400, "Đợt đăng ký của lớp " + lhp.getMaLHP() + " đã kết thúc");
         }
 
         int siSoHienTai = lhp.getSiSoHienTai() != null ? lhp.getSiSoHienTai() : 0;
         int siSoToiDa = lhp.getSiSoToiDa() != null ? lhp.getSiSoToiDa() : 0;
         if (siSoHienTai >= siSoToiDa) {
-            throw new StudentBusinessException(400, "Lá»›p Ä‘Ă£ Ä‘áº§y sÄ© sá»‘ hoáº·c chÆ°a tá»›i giá» má»Ÿ cá»•ng");
+            throw new StudentBusinessException(400, "Lớp " + lhp.getMaLHP() + " đã đủ sĩ số");
         }
 
         Optional<HoSoHocPhan> existingOpt = studentRepository.findEnrollment(maSV, lhp.getMaLHP());
         if (existingOpt.isPresent() && !existingOpt.get().isDeleted() && !existingOpt.get().isDaHuy()) {
-            throw new StudentBusinessException(400, "Sinh viĂªn Ä‘Ă£ Ä‘Äƒng kĂ½ lá»›p há»c pháº§n nĂ y");
+            throw new StudentBusinessException(400, "Sinh viên đã đăng ký lớp học phần này");
         }
 
         List<HoSoHocPhan> currentRegistered = studentRepository.findRegisteredClasses(maSV);
@@ -396,7 +396,7 @@ public class StudentServiceImpl implements StudentService {
         }
         int newCredits = (lhp.getMonHoc() != null && lhp.getMonHoc().getSoTinChi() != null) ? lhp.getMonHoc().getSoTinChi() : 0;
         if (currentCredits + newCredits > 24) {
-            throw new StudentBusinessException(400, "VÆ°á»£t quĂ¡ háº¡n má»©c tĂ­n chá»‰ tá»‘i Ä‘a trong há»c ká»³ (24 tĂ­n chá»‰)");
+            throw new StudentBusinessException(400, "Vượt quá hạn mức tín chỉ tối đa trong học kỳ (24 tín chỉ)");
         }
 
         if (lhp.getThu() != null && lhp.getTietBatDau() != null && lhp.getSoTiet() != null) {
@@ -412,7 +412,7 @@ public class StudentServiceImpl implements StudentService {
 
             boolean hasConflict = ScheduleConflictUtil.checkStudentScheduleConflict(lhp.getThu(), tietBD, tietKT, enrolledClasses);
             if (hasConflict) {
-                throw new StudentBusinessException(409, "TrĂ¹ng thá»i khĂ³a biá»ƒu vá»›i lá»›p khĂ¡c");
+                throw new StudentBusinessException(409, "Trùng thời khóa biểu với lớp khác");
             }
         }
 
@@ -485,14 +485,14 @@ public class StudentServiceImpl implements StudentService {
         }
         if (request == null || request.getMaHP() == null || request.getMaHP().isBlank()
                 || request.getLyDo() == null || request.getLyDo().isBlank()) {
-            throw new StudentBusinessException(400, "Vui lĂ²ng nháº­p Ä‘áº§y Ä‘á»§ mĂ£ há»c pháº§n vĂ  lĂ½ do kiáº¿n nghá»‹");
+            throw new StudentBusinessException(400, "Vui lòng nhập đầy đủ mã học phần và lý do kiến nghị");
         }
 
         SinhVien sv = studentRepository.findByMaSV(maSV)
                 .orElseThrow(() -> new StudentBusinessException(404, "Không tìm thấy hồ sơ sinh viên " + maSV));
 
         HocPhan hp = studentRepository.findHocPhanByMaHP(request.getMaHP().trim())
-                .orElseThrow(() -> new StudentBusinessException(404, "KhĂ´ng tĂ¬m tháº¥y há»c pháº§n " + request.getMaHP()));
+                .orElseThrow(() -> new StudentBusinessException(404, "Không tìm thấy học phần " + request.getMaHP()));
 
         String maYeuCau = "YC-" + System.currentTimeMillis();
         YeuCauMoLop yc = new YeuCauMoLop();
