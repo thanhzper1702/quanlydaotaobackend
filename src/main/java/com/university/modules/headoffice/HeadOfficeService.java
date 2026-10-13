@@ -30,6 +30,9 @@ public interface HeadOfficeService {
 
     HeadOfficeStatisticsResponseDTO getStatistics(String maHocKy);
 
+    SemesterAcademicStatisticsResponseDTO getSemesterAcademicStatistics(String maHocKy, String nienKhoa,
+                                                                          String khoa, String hocLuc);
+
     byte[] exportStatisticsExcel(String maHocKy);
 
     byte[] exportLecturersExcel(String khoa);

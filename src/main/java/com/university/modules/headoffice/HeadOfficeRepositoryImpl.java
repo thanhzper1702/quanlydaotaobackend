@@ -391,6 +391,41 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public List<Object[]> findSemesterAcademicAverages(String maHocKy, String nienKhoa, String khoa) {
+        return execute(em -> {
+            StringBuilder sql = new StringBuilder("""
+                    SELECT s.masv,
+                           COALESCE(SUM(CASE WHEN l.mahocky = :maHocKy AND h.diemtongket IS NOT NULL
+                                THEN h.diemtongket * hp.sotinchi ELSE 0 END), 0) AS weighted_score,
+                           COALESCE(SUM(CASE WHEN l.mahocky = :maHocKy AND h.diemtongket IS NOT NULL
+                                THEN hp.sotinchi ELSE 0 END), 0) AS scored_credits
+                    FROM sinhvien s
+                    LEFT JOIN hosohocphan h ON h.masv = s.masv AND h.deleted = false
+                    LEFT JOIN lophocphan l ON l.malhp = h.malhp AND l.deleted = false
+                    LEFT JOIN hocphan hp ON hp.mahp = l.mahp AND hp.deleted = false
+                    WHERE s.deleted = false
+                    """);
+            if (nienKhoa != null && !nienKhoa.isBlank() && !"all".equalsIgnoreCase(nienKhoa)) {
+                sql.append(" AND s.nienkhoa = :nienKhoa");
+            }
+            if (khoa != null && !khoa.isBlank() && !"all".equalsIgnoreCase(khoa)) {
+                sql.append(" AND LOWER(s.khoa) = LOWER(:khoa)");
+            }
+            sql.append(" GROUP BY s.masv ORDER BY s.masv");
+
+            var query = em.createNativeQuery(sql.toString()).setParameter("maHocKy", maHocKy);
+            if (nienKhoa != null && !nienKhoa.isBlank() && !"all".equalsIgnoreCase(nienKhoa)) {
+                query.setParameter("nienKhoa", nienKhoa);
+            }
+            if (khoa != null && !khoa.isBlank() && !"all".equalsIgnoreCase(khoa)) {
+                query.setParameter("khoa", khoa);
+            }
+            return query.getResultList();
+        });
+    }
+
+    @Override
     public long countTotalCourses() {
         return countCourses();
     }

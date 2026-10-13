@@ -161,6 +161,17 @@ public class HeadOfficeController extends BaseController {
         });
     }
 
+    @GET
+    @Path("/statistics/academic-standing")
+    public Response getSemesterAcademicStatistics(@QueryParam("maHocKy") String maHocKy,
+                                                  @QueryParam("nienKhoa") @DefaultValue("all") String nienKhoa,
+                                                  @QueryParam("khoa") @DefaultValue("all") String khoa,
+                                                  @QueryParam("hocLuc") @DefaultValue("all") String hocLuc) {
+        return execute(() -> Response.ok(ApiResponse.success(
+                "Thống kê học lực theo học kỳ",
+                headOfficeService.getSemesterAcademicStatistics(maHocKy, nienKhoa, khoa, hocLuc))).build());
+    }
+
     private static Map<String, Object> buildPaginationMeta(int page, int limit, long totalItems) {
         Map<String, Object> meta = new LinkedHashMap<>();
         meta.put("page", page);

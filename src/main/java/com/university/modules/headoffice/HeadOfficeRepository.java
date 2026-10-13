@@ -71,6 +71,8 @@ public interface HeadOfficeRepository extends GenericRepository<TruongPhongDaoTa
 
     List<Object[]> countAcademicResults(String maHocKy);
 
+    List<Object[]> findSemesterAcademicAverages(String maHocKy, String nienKhoa, String khoa);
+
     long countTotalCourses();
 
     boolean updateGradeLock(String maLHP, boolean isLocked);

@@ -13,10 +13,14 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
 public class HeadOfficeServiceImpl implements HeadOfficeService {
+    private static final List<String> ACADEMIC_STANDING_ORDER = List.of(
+            "XUAT_SAC", "GIOI", "KHA", "TRUNG_BINH", "YEU", "CHUA_XEP_LOAI");
+    private static final Set<String> ACADEMIC_STANDINGS = Set.copyOf(ACADEMIC_STANDING_ORDER);
     private final HeadOfficeRepository repository;
 
     public HeadOfficeServiceImpl() {
@@ -198,6 +202,47 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
     }
 
     @Override
+    public SemesterAcademicStatisticsResponseDTO getSemesterAcademicStatistics(String maHocKy, String nienKhoa,
+                                                                                 String khoa, String hocLuc) {
+        if (isBlank(maHocKy)) {
+            throw new IllegalArgumentException("Vui lòng chọn học kỳ");
+        }
+        String semester = maHocKy.trim();
+        if (repository.findSemesterById(semester).isEmpty()) {
+            throw new java.util.NoSuchElementException("Không tìm thấy học kỳ");
+        }
+
+        String standingFilter = isBlank(hocLuc) || "all".equalsIgnoreCase(hocLuc.trim())
+                ? "all" : hocLuc.trim().toUpperCase();
+        if (!"all".equals(standingFilter) && !ACADEMIC_STANDINGS.contains(standingFilter)) {
+            throw new IllegalArgumentException("Học lực không hợp lệ");
+        }
+
+        Map<String, Long> counts = new LinkedHashMap<>();
+        ACADEMIC_STANDING_ORDER.forEach(key -> counts.put(key, 0L));
+        long total = 0;
+        for (Object[] row : repository.findSemesterAcademicAverages(semester, nienKhoa, khoa)) {
+            double weightedScore = ((Number) row[1]).doubleValue();
+            double scoredCredits = ((Number) row[2]).doubleValue();
+            String standing = classifyAcademicStanding(weightedScore, scoredCredits);
+            if (!"all".equals(standingFilter) && !standingFilter.equals(standing)) {
+                continue;
+            }
+            counts.merge(standing, 1L, Long::sum);
+            total++;
+        }
+
+        Map<String, AcademicStandingItemDTO> result = new LinkedHashMap<>();
+        for (String key : ACADEMIC_STANDING_ORDER) {
+            long count = counts.get(key);
+            double rate = total == 0 ? 0 : Math.round(count * 1000.0 / total) / 10.0;
+            result.put(key, new AcademicStandingItemDTO(count, rate));
+        }
+        return new SemesterAcademicStatisticsResponseDTO(
+                semester, normalizeFilter(nienKhoa), normalizeFilter(khoa), standingFilter, total, result);
+    }
+
+    @Override
     public byte[] exportStatisticsExcel(String maHocKy) {
         HeadOfficeStatisticsResponseDTO statistics = getStatistics(maHocKy);
         String semester = isBlank(maHocKy) ? "Toan truong" : maHocKy.trim();
@@ -263,6 +308,20 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
 
     private static String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private static String classifyAcademicStanding(double weightedScore, double scoredCredits) {
+        if (scoredCredits <= 0) return "CHUA_XEP_LOAI";
+        double average = weightedScore / scoredCredits;
+        if (average >= 9.0) return "XUAT_SAC";
+        if (average >= 8.0) return "GIOI";
+        if (average >= 6.5) return "KHA";
+        if (average >= 5.0) return "TRUNG_BINH";
+        return "YEU";
+    }
+
+    private static String normalizeFilter(String value) {
+        return isBlank(value) || "all".equalsIgnoreCase(value.trim()) ? "all" : value.trim();
     }
 
     private static Map<String, Long> toCountMap(List<Object[]> rows) {

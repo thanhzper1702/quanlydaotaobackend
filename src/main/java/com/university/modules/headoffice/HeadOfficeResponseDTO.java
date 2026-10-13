@@ -221,4 +221,44 @@ public final class HeadOfficeResponseDTO {
         public Map<String, Long> getStudentsByGender() { return studentsByGender; }
         public Map<String, Long> getAcademicResults() { return academicResults; }
     }
+
+    public static class AcademicStandingItemDTO {
+        private long count;
+        private double rate;
+
+        public AcademicStandingItemDTO() { }
+        public AcademicStandingItemDTO(long count, double rate) {
+            this.count = count;
+            this.rate = rate;
+        }
+        public long getCount() { return count; }
+        public double getRate() { return rate; }
+    }
+
+    public static class SemesterAcademicStatisticsResponseDTO {
+        private String maHocKy;
+        private String nienKhoa;
+        private String khoa;
+        private String hocLuc;
+        private long totalStudents;
+        private Map<String, AcademicStandingItemDTO> academicStandings;
+
+        public SemesterAcademicStatisticsResponseDTO() { }
+        public SemesterAcademicStatisticsResponseDTO(String maHocKy, String nienKhoa, String khoa,
+                                                       String hocLuc, long totalStudents,
+                                                       Map<String, AcademicStandingItemDTO> academicStandings) {
+            this.maHocKy = maHocKy;
+            this.nienKhoa = nienKhoa;
+            this.khoa = khoa;
+            this.hocLuc = hocLuc;
+            this.totalStudents = totalStudents;
+            this.academicStandings = academicStandings;
+        }
+        public String getMaHocKy() { return maHocKy; }
+        public String getNienKhoa() { return nienKhoa; }
+        public String getKhoa() { return khoa; }
+        public String getHocLuc() { return hocLuc; }
+        public long getTotalStudents() { return totalStudents; }
+        public Map<String, AcademicStandingItemDTO> getAcademicStandings() { return academicStandings; }
+    }
 }
