@@ -17,6 +17,8 @@ public interface HeadOfficeService {
 
     CreateSemesterResponseDTO createSemester(CreateSemesterRequestDTO request);
 
+    void updateSemester(String maHocKy, UpdateSemesterRequestDTO request);
+
     HeadOfficeClassResponseDTO getClasses(String maHocKy, int page, int limit);
 
     HeadOfficeClassGradeResponseDTO getClassGrades(String maLHP);

@@ -410,6 +410,7 @@ public final class StudentResponse {
             private Boolean canCancel;
             private String trangThai;
             private String thoiGianKTDK;
+            private String maHocKy;
 
             public RegisteredClassItem() {
             }
@@ -437,6 +438,9 @@ public final class StudentResponse {
                 this.trangThai = trangThai;
                 this.thoiGianKTDK = thoiGianKTDK;
             }
+
+            public String getMaHocKy() { return maHocKy; }
+            public void setMaHocKy(String maHocKy) { this.maHocKy = maHocKy; }
 
             public Long getMaHoSo() { return maHoSo; }
             public void setMaHoSo(Long maHoSo) { this.maHoSo = maHoSo; }

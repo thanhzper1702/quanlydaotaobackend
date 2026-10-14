@@ -67,6 +67,8 @@ public final class HeadOfficeResponseDTO {
             private LocalDate thoiGianBD;
             private LocalDate thoiGianKT;
             private Boolean dangMo;
+            @com.fasterxml.jackson.annotation.JsonProperty("isCurrent")
+            private Boolean isCurrent;
 
             public SemesterItem() { }
             public SemesterItem(String maHocKy, String tenHocKy, LocalDate thoiGianBD, LocalDate thoiGianKT) {
@@ -75,6 +77,7 @@ public final class HeadOfficeResponseDTO {
                 this.thoiGianBD = thoiGianBD;
                 this.thoiGianKT = thoiGianKT;
                 this.dangMo = "2026_2027_HK1".equals(maHocKy);
+                this.isCurrent = "2026_2027_HK1".equals(maHocKy);
             }
             public SemesterItem(String maHocKy, String tenHocKy, LocalDate thoiGianBD, LocalDate thoiGianKT, Boolean dangMo) {
                 this.maHocKy = maHocKy;
@@ -82,6 +85,15 @@ public final class HeadOfficeResponseDTO {
                 this.thoiGianBD = thoiGianBD;
                 this.thoiGianKT = thoiGianKT;
                 this.dangMo = dangMo;
+                this.isCurrent = Boolean.TRUE.equals(dangMo) || "2026_2027_HK1".equals(maHocKy);
+            }
+            public SemesterItem(String maHocKy, String tenHocKy, LocalDate thoiGianBD, LocalDate thoiGianKT, Boolean dangMo, Boolean isCurrent) {
+                this.maHocKy = maHocKy;
+                this.tenHocKy = tenHocKy;
+                this.thoiGianBD = thoiGianBD;
+                this.thoiGianKT = thoiGianKT;
+                this.dangMo = dangMo;
+                this.isCurrent = isCurrent != null && isCurrent;
             }
             public String getMaHocKy() { return maHocKy; }
             public String getTenHocKy() { return tenHocKy; }
@@ -89,6 +101,11 @@ public final class HeadOfficeResponseDTO {
             public LocalDate getThoiGianKT() { return thoiGianKT; }
             public Boolean getDangMo() { return dangMo; }
             public void setDangMo(Boolean dangMo) { this.dangMo = dangMo; }
+            public Boolean getIsCurrent() { return isCurrent != null && isCurrent; }
+            public void setIsCurrent(Boolean isCurrent) { this.isCurrent = isCurrent; }
+            @com.fasterxml.jackson.annotation.JsonProperty("is_current")
+            public Boolean getIsCurrentSnake() { return isCurrent != null && isCurrent; }
+            public Boolean getHienHanh() { return isCurrent != null && isCurrent; }
         }
     }
 

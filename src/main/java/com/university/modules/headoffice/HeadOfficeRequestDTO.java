@@ -44,4 +44,16 @@ public final class HeadOfficeRequestDTO {
         public Boolean getKhoaDiem() { return khoaDiem; }
         public void setKhoaDiem(Boolean khoaDiem) { this.khoaDiem = khoaDiem; }
     }
+
+    public static class UpdateSemesterRequestDTO {
+        private String tenHocKy;
+        private String thoiGianBD;
+        private String thoiGianKT;
+        public String getTenHocKy() { return tenHocKy; }
+        public void setTenHocKy(String tenHocKy) { this.tenHocKy = tenHocKy; }
+        public String getThoiGianBD() { return thoiGianBD; }
+        public void setThoiGianBD(String thoiGianBD) { this.thoiGianBD = thoiGianBD; }
+        public String getThoiGianKT() { return thoiGianKT; }
+        public void setThoiGianKT(String thoiGianKT) { this.thoiGianKT = thoiGianKT; }
+    }
 }

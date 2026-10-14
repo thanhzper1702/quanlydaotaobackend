@@ -61,52 +61,90 @@ public final class ScheduleConflictUtil {
     // =========================================================================
 
     /**
-     * Kiểm tra xung đột lịch học của sinh viên theo mã SV và thông số lịch mới.
-     * Từ mã SV, lấy danh sách các lớp học phần sinh viên đang học, duyệt qua so sánh và trả về kết quả.
+     * Kiểm tra xung đột lịch học của sinh viên theo mã SV, mã học kỳ và thông số lịch mới.
+     * Chỉ so sánh với các lớp học phần trong cùng học kỳ đó của sinh viên.
      *
      * @param maSV        Mã sinh viên
+     * @param maHocKy     Mã học kỳ cần kiểm tra (nếu null/rỗng sẽ so sánh tất cả lớp đang học)
      * @param thu         Thứ học dự kiến (2-8)
      * @param tietBatDau  Tiết bắt đầu dự kiến (1-15)
      * @param tietKetThuc Tiết kết thúc dự kiến (1-15)
      * @param em          EntityManager hiện hành
-     * @return true nếu bị trùng lịch với lớp đang học của SV, ngược lại false
+     * @return true nếu bị trùng lịch với lớp đang học của SV trong học kỳ đó, ngược lại false
      */
-    public static boolean checkStudentScheduleConflict(String maSV, int thu, int tietBatDau, int tietKetThuc, EntityManager em) {
+    public static boolean checkStudentScheduleConflict(String maSV, String maHocKy, int thu, int tietBatDau, int tietKetThuc, EntityManager em) {
         if (maSV == null || em == null) {
             return false;
         }
-        List<LopHocPhan> activeClasses = em.createQuery(
+        StringBuilder jpql = new StringBuilder(
                 "SELECT h.lopHocPhan FROM HoSoHocPhan h " +
                 "WHERE h.sinhVien.maSV = :maSV " +
                 "  AND h.trangThai IN (:statusDangKy, :statusDangHoc) " +
-                "  AND h.deleted = false", LopHocPhan.class)
+                "  AND h.deleted = false"
+        );
+        if (maHocKy != null && !maHocKy.trim().isEmpty()) {
+            jpql.append("  AND h.lopHocPhan.hocKy.maHocKy = :maHocKy");
+        }
+
+        var query = em.createQuery(jpql.toString(), LopHocPhan.class)
                 .setParameter("maSV", maSV)
                 .setParameter("statusDangKy", TrangThaiHocPhan.DADANGKY)
-                .setParameter("statusDangHoc", TrangThaiHocPhan.DANGHOC)
-                .getResultList();
+                .setParameter("statusDangHoc", TrangThaiHocPhan.DANGHOC);
 
-        return checkStudentScheduleConflict(thu, tietBatDau, tietKetThuc, activeClasses);
+        if (maHocKy != null && !maHocKy.trim().isEmpty()) {
+            query.setParameter("maHocKy", maHocKy.trim());
+        }
+
+        List<LopHocPhan> activeClasses = query.getResultList();
+        return checkStudentScheduleConflict(maHocKy, thu, tietBatDau, tietKetThuc, activeClasses);
     }
 
     /**
-     * Overload tự động quản lý EntityManager cho Sinh viên.
+     * Overload kiểm tra xung đột lịch học sinh viên không truyền EntityManager.
      */
-    public static boolean checkStudentScheduleConflict(String maSV, int thu, int tietBatDau, int tietKetThuc) {
+    public static boolean checkStudentScheduleConflict(String maSV, String maHocKy, int thu, int tietBatDau, int tietKetThuc) {
         try (EntityManager em = JpaUtil.getEntityManager()) {
-            return checkStudentScheduleConflict(maSV, thu, tietBatDau, tietKetThuc, em);
+            return checkStudentScheduleConflict(maSV, maHocKy, thu, tietBatDau, tietKetThuc, em);
         } catch (Exception e) {
             return false;
         }
     }
 
     /**
-     * Overload kiểm tra trực tiếp trên danh sách lớp học phần của sinh viên (thuận tiện cho service/test).
+     * Overload tương thích ngược kiểm tra xung đột lịch học của sinh viên theo mã SV.
      */
-    public static boolean checkStudentScheduleConflict(int thu, int tietBatDau, int tietKetThuc, List<LopHocPhan> studentClasses) {
+    public static boolean checkStudentScheduleConflict(String maSV, int thu, int tietBatDau, int tietKetThuc, EntityManager em) {
+        return checkStudentScheduleConflict(maSV, null, thu, tietBatDau, tietKetThuc, em);
+    }
+
+    /**
+     * Overload tự động quản lý EntityManager cho Sinh viên.
+     */
+    public static boolean checkStudentScheduleConflict(String maSV, int thu, int tietBatDau, int tietKetThuc) {
+        return checkStudentScheduleConflict(maSV, null, thu, tietBatDau, tietKetThuc);
+    }
+
+    /**
+     * Kiểm tra trực tiếp trên danh sách lớp học phần của sinh viên, có lọc theo mã học kỳ.
+     * Chỉ so sánh các lớp học phần thuộc cùng mã học kỳ (nếu maHocKy được cung cấp).
+     *
+     * @param maHocKy        Mã học kỳ để lọc (có thể null nếu muốn so sánh toàn bộ)
+     * @param thu            Thứ học
+     * @param tietBatDau     Tiết bắt đầu
+     * @param tietKetThuc    Tiết kết thúc
+     * @param studentClasses Danh sách lớp học phần của sinh viên
+     * @return true nếu trùng lịch trong học kỳ đó
+     */
+    public static boolean checkStudentScheduleConflict(String maHocKy, int thu, int tietBatDau, int tietKetThuc, List<LopHocPhan> studentClasses) {
         if (studentClasses == null) {
             return false;
         }
         for (LopHocPhan lhp : studentClasses) {
+            if (maHocKy != null && !maHocKy.trim().isEmpty() && lhp.getHocKy() != null && lhp.getHocKy().getMaHocKy() != null) {
+                if (!maHocKy.trim().equalsIgnoreCase(lhp.getHocKy().getMaHocKy().trim())) {
+                    continue; // Khác học kỳ thì không trùng lịch
+                }
+            }
             if (checkTimeConflict(thu, tietBatDau, tietKetThuc, lhp)) {
                 return true;
             }
@@ -115,14 +153,32 @@ public final class ScheduleConflictUtil {
     }
 
     /**
-     * Overload tiện ích truyền vào LopHocPhan mới cần đăng ký.
+     * Overload kiểm tra trực tiếp trên danh sách lớp học phần của sinh viên (thuận tiện cho service/test).
      */
-    public static boolean checkStudentScheduleConflict(String maSV, LopHocPhan targetLhp, EntityManager em) {
+    public static boolean checkStudentScheduleConflict(int thu, int tietBatDau, int tietKetThuc, List<LopHocPhan> studentClasses) {
+        return checkStudentScheduleConflict(null, thu, tietBatDau, tietKetThuc, studentClasses);
+    }
+
+    /**
+     * Overload tiện ích truyền vào LopHocPhan mới cần đăng ký và chỉ định mã học kỳ.
+     */
+    public static boolean checkStudentScheduleConflict(String maSV, String maHocKy, LopHocPhan targetLhp, EntityManager em) {
         if (targetLhp == null || targetLhp.getThu() == null || targetLhp.getTietBatDau() == null || targetLhp.getSoTiet() == null) {
             return false;
         }
         int tietKetThuc = targetLhp.getTietBatDau() + targetLhp.getSoTiet() - 1;
-        return checkStudentScheduleConflict(maSV, targetLhp.getThu(), targetLhp.getTietBatDau(), tietKetThuc, em);
+        String effectiveSemester = (maHocKy != null && !maHocKy.trim().isEmpty())
+                ? maHocKy
+                : (targetLhp.getHocKy() != null ? targetLhp.getHocKy().getMaHocKy() : null);
+        return checkStudentScheduleConflict(maSV, effectiveSemester, targetLhp.getThu(), targetLhp.getTietBatDau(), tietKetThuc, em);
+    }
+
+    /**
+     * Overload tiện ích truyền vào LopHocPhan mới cần đăng ký (tự trích xuất mã học kỳ từ targetLhp).
+     */
+    public static boolean checkStudentScheduleConflict(String maSV, LopHocPhan targetLhp, EntityManager em) {
+        String maHocKy = (targetLhp != null && targetLhp.getHocKy() != null) ? targetLhp.getHocKy().getMaHocKy() : null;
+        return checkStudentScheduleConflict(maSV, maHocKy, targetLhp, em);
     }
 
     // =========================================================================
@@ -130,52 +186,89 @@ public final class ScheduleConflictUtil {
     // =========================================================================
 
     /**
-     * Kiểm tra xung đột lịch dạy của giảng viên khi phân công lớp học phần.
-     * Từ mã nhân viên (mã GV), lấy danh sách các lớp học phần giảng viên đang phụ trách, duyệt qua so sánh và trả về kết quả.
+     * Kiểm tra xung đột lịch dạy của giảng viên theo mã GV, mã học kỳ và thông số lịch mới.
+     * Chỉ so sánh với các lớp học phần trong cùng học kỳ đó mà giảng viên đang phụ trách.
      *
      * @param maGV        Mã nhân viên / giảng viên
+     * @param maHocKy     Mã học kỳ cần kiểm tra (nếu null/rỗng sẽ so sánh tất cả lớp đang dạy)
      * @param thu         Thứ phân công dự kiến (2-8)
      * @param tietBatDau  Tiết bắt đầu dự kiến (1-15)
      * @param tietKetThuc Tiết kết thúc dự kiến (1-15)
      * @param em          EntityManager hiện hành
-     * @return true nếu bị trùng lịch dạy của giảng viên, ngược lại false
+     * @return true nếu bị trùng lịch dạy của giảng viên trong học kỳ đó, ngược lại false
      */
-    public static boolean checkLecturerScheduleConflict(String maGV, int thu, int tietBatDau, int tietKetThuc, EntityManager em) {
+    public static boolean checkLecturerScheduleConflict(String maGV, String maHocKy, int thu, int tietBatDau, int tietKetThuc, EntityManager em) {
         if (maGV == null || em == null) {
             return false;
         }
-        List<LopHocPhan> activeClasses = em.createQuery(
+        StringBuilder jpql = new StringBuilder(
                 "SELECT l FROM LopHocPhan l " +
                 "WHERE l.giangVien.maNV = :maGV " +
                 "  AND l.trangThai IN (:statusMo, :statusDangHoc) " +
-                "  AND l.deleted = false", LopHocPhan.class)
+                "  AND l.deleted = false"
+        );
+        if (maHocKy != null && !maHocKy.trim().isEmpty()) {
+            jpql.append("  AND l.hocKy.maHocKy = :maHocKy");
+        }
+
+        var query = em.createQuery(jpql.toString(), LopHocPhan.class)
                 .setParameter("maGV", maGV)
                 .setParameter("statusMo", TrangThaiLop.MODANGKY)
-                .setParameter("statusDangHoc", TrangThaiLop.DANGHOC)
-                .getResultList();
+                .setParameter("statusDangHoc", TrangThaiLop.DANGHOC);
 
-        return checkLecturerScheduleConflict(thu, tietBatDau, tietKetThuc, activeClasses);
+        if (maHocKy != null && !maHocKy.trim().isEmpty()) {
+            query.setParameter("maHocKy", maHocKy.trim());
+        }
+
+        List<LopHocPhan> activeClasses = query.getResultList();
+        return checkLecturerScheduleConflict(maHocKy, thu, tietBatDau, tietKetThuc, activeClasses);
     }
 
     /**
-     * Overload tự động quản lý EntityManager cho Giảng viên.
+     * Overload tự động quản lý EntityManager cho Giảng viên có kèm mã học kỳ.
      */
-    public static boolean checkLecturerScheduleConflict(String maGV, int thu, int tietBatDau, int tietKetThuc) {
+    public static boolean checkLecturerScheduleConflict(String maGV, String maHocKy, int thu, int tietBatDau, int tietKetThuc) {
         try (EntityManager em = JpaUtil.getEntityManager()) {
-            return checkLecturerScheduleConflict(maGV, thu, tietBatDau, tietKetThuc, em);
+            return checkLecturerScheduleConflict(maGV, maHocKy, thu, tietBatDau, tietKetThuc, em);
         } catch (Exception e) {
             return false;
         }
     }
 
     /**
-     * Overload kiểm tra trực tiếp trên danh sách lớp dạy của giảng viên (thuận tiện cho service/test).
+     * Overload tương thích ngược kiểm tra xung đột lịch dạy của giảng viên.
      */
-    public static boolean checkLecturerScheduleConflict(int thu, int tietBatDau, int tietKetThuc, List<LopHocPhan> lecturerClasses) {
+    public static boolean checkLecturerScheduleConflict(String maGV, int thu, int tietBatDau, int tietKetThuc, EntityManager em) {
+        return checkLecturerScheduleConflict(maGV, null, thu, tietBatDau, tietKetThuc, em);
+    }
+
+    /**
+     * Overload tự động quản lý EntityManager cho Giảng viên.
+     */
+    public static boolean checkLecturerScheduleConflict(String maGV, int thu, int tietBatDau, int tietKetThuc) {
+        return checkLecturerScheduleConflict(maGV, null, thu, tietBatDau, tietKetThuc);
+    }
+
+    /**
+     * Kiểm tra trực tiếp trên danh sách lớp dạy của giảng viên, có lọc theo mã học kỳ.
+     *
+     * @param maHocKy         Mã học kỳ để lọc (có thể null nếu muốn so sánh toàn bộ)
+     * @param thu             Thứ dạy
+     * @param tietBatDau      Tiết bắt đầu
+     * @param tietKetThuc     Tiết kết thúc
+     * @param lecturerClasses Danh sách lớp phân công của giảng viên
+     * @return true nếu trùng lịch dạy trong học kỳ đó
+     */
+    public static boolean checkLecturerScheduleConflict(String maHocKy, int thu, int tietBatDau, int tietKetThuc, List<LopHocPhan> lecturerClasses) {
         if (lecturerClasses == null) {
             return false;
         }
         for (LopHocPhan lhp : lecturerClasses) {
+            if (maHocKy != null && !maHocKy.trim().isEmpty() && lhp.getHocKy() != null && lhp.getHocKy().getMaHocKy() != null) {
+                if (!maHocKy.trim().equalsIgnoreCase(lhp.getHocKy().getMaHocKy().trim())) {
+                    continue; // Khác học kỳ thì không trùng lịch
+                }
+            }
             if (checkTimeConflict(thu, tietBatDau, tietKetThuc, lhp)) {
                 return true;
             }
@@ -184,13 +277,31 @@ public final class ScheduleConflictUtil {
     }
 
     /**
-     * Overload tiện ích truyền vào LopHocPhan mới cần phân công.
+     * Overload kiểm tra trực tiếp trên danh sách lớp dạy của giảng viên (thuận tiện cho service/test).
      */
-    public static boolean checkLecturerScheduleConflict(String maGV, LopHocPhan targetLhp, EntityManager em) {
+    public static boolean checkLecturerScheduleConflict(int thu, int tietBatDau, int tietKetThuc, List<LopHocPhan> lecturerClasses) {
+        return checkLecturerScheduleConflict(null, thu, tietBatDau, tietKetThuc, lecturerClasses);
+    }
+
+    /**
+     * Overload tiện ích truyền vào LopHocPhan mới cần phân công và chỉ định mã học kỳ.
+     */
+    public static boolean checkLecturerScheduleConflict(String maGV, String maHocKy, LopHocPhan targetLhp, EntityManager em) {
         if (targetLhp == null || targetLhp.getThu() == null || targetLhp.getTietBatDau() == null || targetLhp.getSoTiet() == null) {
             return false;
         }
         int tietKetThuc = targetLhp.getTietBatDau() + targetLhp.getSoTiet() - 1;
-        return checkLecturerScheduleConflict(maGV, targetLhp.getThu(), targetLhp.getTietBatDau(), tietKetThuc, em);
+        String effectiveSemester = (maHocKy != null && !maHocKy.trim().isEmpty())
+                ? maHocKy
+                : (targetLhp.getHocKy() != null ? targetLhp.getHocKy().getMaHocKy() : null);
+        return checkLecturerScheduleConflict(maGV, effectiveSemester, targetLhp.getThu(), targetLhp.getTietBatDau(), tietKetThuc, em);
+    }
+
+    /**
+     * Overload tiện ích truyền vào LopHocPhan mới cần phân công (tự trích xuất mã học kỳ từ targetLhp).
+     */
+    public static boolean checkLecturerScheduleConflict(String maGV, LopHocPhan targetLhp, EntityManager em) {
+        String maHocKy = (targetLhp != null && targetLhp.getHocKy() != null) ? targetLhp.getHocKy().getMaHocKy() : null;
+        return checkLecturerScheduleConflict(maGV, maHocKy, targetLhp, em);
     }
 }

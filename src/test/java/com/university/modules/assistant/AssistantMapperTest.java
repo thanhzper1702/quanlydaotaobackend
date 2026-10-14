@@ -42,7 +42,7 @@ class AssistantMapperTest {
 
         assertEquals("INT1405_01", entity.getMaLHP());
         assertEquals(1, entity.getTietBatDau());
-        assertEquals(TrangThaiLop.MODANGKY, entity.getTrangThai());
+        assertEquals(TrangThaiLop.CHUA_MO, entity.getTrangThai());
         assertNotNull(entity.getCreatedAt());
         assertNotNull(entity.getUpdatedAt());
     }

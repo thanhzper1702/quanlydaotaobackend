@@ -1,5 +1,6 @@
 package com.university.modules.student;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -10,6 +11,7 @@ public final class StudentRequest {
     private StudentRequest() {
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class EnrollCourseRequest {
         @NotBlank(message = "Mã lớp học phần không được để trống")
         private String maLHP;
@@ -35,6 +37,7 @@ public final class StudentRequest {
         public EnrollCourseRequestDTO(String maLHP) { super(maLHP); }
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class OpenClassRequestRequest {
         @NotBlank(message = "Mã học phần không được để trống")
         private String maHP;

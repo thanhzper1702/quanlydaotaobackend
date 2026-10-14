@@ -4,6 +4,8 @@
 -- ====================================================================
 
 -- 1. XÓA BẢNG VÀ TRIGGER CŨ NẾU ĐÃ TỒN TẠI
+DROP TRIGGER IF EXISTS trg_kiem_tra_hoc_ky_khong_chong_cheo ON HocKy;
+DROP FUNCTION IF EXISTS fn_kiem_tra_hoc_ky_khong_chong_cheo();
 DROP TRIGGER IF EXISTS trg_cap_nhat_vang_va_dinh_chi ON DiemDanh;
 DROP FUNCTION IF EXISTS fn_cap_nhat_vang_va_dinh_chi();
 DROP TRIGGER IF EXISTS trg_tinh_diem_tong_ket ON HoSoHocPhan;
@@ -120,7 +122,7 @@ CREATE TABLE HocKy (
 CREATE TABLE HocPhan (
     maHP VARCHAR(20) PRIMARY KEY,
     tenHP VARCHAR(150) NOT NULL,
-    soTinChi INT NOT NULL CHECK (soTinChi > 0),
+    soTinChi INT NOT NULL CHECK (soTinChi BETWEEN 1 AND 4),
     deleted BOOLEAN NOT NULL DEFAULT FALSE
 );
 
@@ -353,3 +355,28 @@ CREATE TRIGGER trg_cap_nhat_vang_va_dinh_chi
 AFTER INSERT OR UPDATE ON DiemDanh
 FOR EACH ROW
 EXECUTE FUNCTION fn_cap_nhat_vang_va_dinh_chi();
+
+-- Trigger 3: Kiểm tra nghiêm ngặt không cho phép các học kỳ chồng chéo thời gian lên nhau
+CREATE OR REPLACE FUNCTION fn_kiem_tra_hoc_ky_khong_chong_cheo()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Chỉ kiểm tra các bản ghi học kỳ chưa bị xóa mềm (deleted = FALSE)
+    IF NEW.deleted = FALSE THEN
+        IF EXISTS (
+            SELECT 1 FROM HocKy
+            WHERE maHocKy <> NEW.maHocKy
+              AND deleted = FALSE
+              AND (NEW.thoiGianBD <= thoiGianKT AND NEW.thoiGianKT >= thoiGianBD)
+        ) THEN
+            RAISE EXCEPTION 'Thời gian học kỳ [% đến %] bị chồng chéo với học kỳ khác đã tồn tại trong hệ thống!', NEW.thoiGianBD, NEW.thoiGianKT;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_kiem_tra_hoc_ky_khong_chong_cheo
+BEFORE INSERT OR UPDATE OF thoiGianBD, thoiGianKT, deleted ON HocKy
+FOR EACH ROW
+EXECUTE FUNCTION fn_kiem_tra_hoc_ky_khong_chong_cheo();
+

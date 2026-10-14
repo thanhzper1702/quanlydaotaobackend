@@ -10,7 +10,11 @@ public interface StudentService {
 
     StudentResponse.OpenedEnrollingClass getOpenClasses(String maHP, String keyword, int page, int limit);
 
+    StudentResponse.OpenedEnrollingClass getOpenClasses(String maHP, String keyword, int page, int limit, String maHocKy);
+
     StudentResponse.RegisteredClassResponse getRegisteredClasses(String maSV);
+
+    StudentResponse.RegisteredClassResponse getRegisteredClasses(String maSV, String maHocKy);
 
     StudentResponse.EnrollCourseResponse enrollCourse(String maSV, StudentRequest.EnrollCourseRequest request);
 

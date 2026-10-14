@@ -120,7 +120,17 @@ public class StudentServiceAndControllerTest {
 
         @Override
         public List<HoSoHocPhan> findRegisteredClassesByHocKy(String maSV, String maHocKy) {
-            return findRegisteredClasses(maSV);
+            List<HoSoHocPhan> list = new ArrayList<>();
+            for (HoSoHocPhan hs : enrollments.values()) {
+                if (hs.getSinhVien() != null && maSV.equals(hs.getSinhVien().getMaSV())
+                        && !hs.isDeleted() && !hs.isDaHuy()) {
+                    if (maHocKy == null || hs.getLopHocPhan() == null || hs.getLopHocPhan().getHocKy() == null
+                            || maHocKy.equalsIgnoreCase(hs.getLopHocPhan().getHocKy().getMaHocKy())) {
+                        list.add(hs);
+                    }
+                }
+            }
+            return list;
         }
 
         @Override
@@ -228,8 +238,8 @@ public class StudentServiceAndControllerTest {
         HocKy hk = new HocKy();
         hk.setMaHocKy("2025_2026_HK1");
         hk.setTenHocKy(TenHocKy.HOCKY1);
-        hk.setThoiGianBD(LocalDate.of(2025, 9, 1));
-        hk.setThoiGianKT(LocalDate.of(2026, 1, 15));
+        hk.setThoiGianBD(LocalDate.now().plusDays(7));
+        hk.setThoiGianKT(LocalDate.now().plusMonths(5));
 
         GiangVien gv = new GiangVien();
         gv.setMaNV("GV001");

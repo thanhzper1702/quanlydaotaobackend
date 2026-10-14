@@ -247,6 +247,7 @@ public class ProfileServiceImpl implements ProfileService {
         if (!updated) {
             throw new ProfileBusinessException(500, "Cập nhật mật khẩu thất bại");
         }
+        user.setRefreshToken(null);
     }
 
     @Override

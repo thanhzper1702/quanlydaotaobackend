@@ -84,7 +84,17 @@ public class ProfileController extends BaseController {
             }
 
             profileService.changePassword(cccd, request);
-            return Response.ok(ApiResponse.success(200, "Đổi mật khẩu thành công", null)).build();
+            jakarta.ws.rs.core.NewCookie clearCookie = new jakarta.ws.rs.core.NewCookie.Builder("refreshToken")
+                    .value("")
+                    .path("/")
+                    .maxAge(0)
+                    .httpOnly(true)
+                    .sameSite(jakarta.ws.rs.core.NewCookie.SameSite.LAX)
+                    .build();
+
+            return Response.ok(ApiResponse.success(200, "Đổi mật khẩu thành công", null))
+                    .cookie(clearCookie)
+                    .build();
         } catch (ProfileBusinessException e) {
             return Response.status(e.getStatusCode())
                     .entity(ApiResponse.error(e.getStatusCode(), e.getMessage()))

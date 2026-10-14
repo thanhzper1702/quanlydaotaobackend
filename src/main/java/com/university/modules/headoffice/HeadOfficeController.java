@@ -2,6 +2,7 @@ package com.university.modules.headoffice;
 import com.university.modules.headoffice.HeadOfficeRequestDTO.CreateCourseRequestDTO;
 import com.university.modules.headoffice.HeadOfficeRequestDTO.CreateSemesterRequestDTO;
 import com.university.modules.headoffice.HeadOfficeRequestDTO.UpdateCourseRequestDTO;
+import com.university.modules.headoffice.HeadOfficeRequestDTO.UpdateSemesterRequestDTO;
 
 
 import com.university.core.common.BaseController;
@@ -88,6 +89,15 @@ public class HeadOfficeController extends BaseController {
             headOfficeService.createSemester(request);
             return Response.status(Response.Status.CREATED)
                 .entity(ApiResponse.success(Response.Status.CREATED.getStatusCode(), "Tạo học kỳ thành công", null)).build();
+        });
+    }
+
+    @PUT
+    @Path("/semesters/{maHocKy}")
+    public Response updateSemester(@PathParam("maHocKy") String maHocKy, UpdateSemesterRequestDTO request) {
+        return execute(() -> {
+            headOfficeService.updateSemester(maHocKy, request);
+            return Response.ok(ApiResponse.success(Response.Status.OK.getStatusCode(), "Cập nhật học kỳ thành công", null)).build();
         });
     }
 

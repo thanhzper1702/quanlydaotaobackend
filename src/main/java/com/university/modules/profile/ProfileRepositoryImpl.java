@@ -284,7 +284,7 @@ public class ProfileRepositoryImpl extends AbstractJpaRepository<NguoiDung, Stri
         }
         return executeInTransaction(em -> {
             int updated = em.createQuery(
-                    "UPDATE NguoiDung u SET u.matKhauHashed = :newHash WHERE u.cccd = :cccd AND u.deleted = false")
+                    "UPDATE NguoiDung u SET u.matKhauHashed = :newHash, u.refreshToken = NULL WHERE u.cccd = :cccd AND u.deleted = false")
                     .setParameter("newHash", newHashedPassword)
                     .setParameter("cccd", cccd.trim())
                     .executeUpdate();

@@ -82,9 +82,10 @@ public class StudentController extends BaseController {
     public Response getOpenClasses(@QueryParam("maHP") String maHP,
                                   @QueryParam("keyword") String keyword,
                                   @QueryParam("page") @DefaultValue("1") int page,
-                                  @QueryParam("limit") @DefaultValue("10") int limit) {
+                                  @QueryParam("limit") @DefaultValue("10") int limit,
+                                  @QueryParam("maHocKy") String maHocKy) {
         try {
-            OpenedEnrollingClass dto = studentService.getOpenClasses(maHP, keyword, page, limit);
+            OpenedEnrollingClass dto = studentService.getOpenClasses(maHP, keyword, page, limit, maHocKy);
 
             Map<String, Object> meta = new LinkedHashMap<>();
             meta.put("page", dto.getPage());
@@ -100,12 +101,16 @@ public class StudentController extends BaseController {
         }
     }
 
+    public Response getOpenClasses(String maHP, String keyword, int page, int limit) {
+        return getOpenClasses(maHP, keyword, page, limit, null);
+    }
+
     @GET
     @Path("/registration/registered-classes")
-    public Response getRegisteredClasses() {
+    public Response getRegisteredClasses(@QueryParam("maHocKy") String maHocKy) {
         try {
             String maSV = getRequiredStudentCode();
-            RegisteredClassResponse dto = studentService.getRegisteredClasses(maSV);
+            RegisteredClassResponse dto = studentService.getRegisteredClasses(maSV, maHocKy);
 
             Map<String, Object> meta = new LinkedHashMap<>();
             meta.put("tongSoLopDaDangKy", dto.getTongSoLopDaDangKy());
@@ -118,6 +123,10 @@ public class StudentController extends BaseController {
         } catch (Exception e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(ApiResponse.error(500, e.getMessage())).build();
         }
+    }
+
+    public Response getRegisteredClasses() {
+        return getRegisteredClasses(null);
     }
 
     @POST

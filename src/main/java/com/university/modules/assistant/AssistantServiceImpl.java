@@ -285,7 +285,7 @@ public class AssistantServiceImpl implements AssistantService {
                     conflicts.add("Lớp học phần chưa có giảng viên: " + classId);
                 }
                 HocKy sem = courseClass.getHocKy();
-                if (sem != null) {
+                if (sem != null && sem.getThoiGianBD() != null) {
                     LocalDate today = LocalDate.now();
                     if (!today.isBefore(sem.getThoiGianBD())) {
                         conflicts.add("Học kỳ " + sem.getMaHocKy() + " đã bắt đầu từ ngày " + sem.getThoiGianBD() + ". Quy chế đào tạo không cho phép mở đợt đăng ký khi học kỳ đang diễn ra");
@@ -305,7 +305,7 @@ public class AssistantServiceImpl implements AssistantService {
 
         for (String classId : classIds) {
             LopHocPhan courseClass = repository.findClassById(classId).orElse(null);
-            if (courseClass != null && courseClass.getHocKy() != null) {
+            if (courseClass != null && courseClass.getHocKy() != null && courseClass.getHocKy().getThoiGianBD() != null) {
                 if (end.toLocalDate().isAfter(courseClass.getHocKy().getThoiGianBD())) {
                     return AssistantResponses.Result.error(400, "Thời hạn kết thúc đợt đăng ký phải trước hoặc bằng ngày bắt đầu học kỳ (" + courseClass.getHocKy().getThoiGianBD() + ")");
                 }

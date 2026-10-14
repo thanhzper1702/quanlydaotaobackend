@@ -247,6 +247,11 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public OpenedEnrollingClass getOpenClasses(String maHP, String keyword, int page, int limit) {
+        return getOpenClasses(maHP, keyword, page, limit, null);
+    }
+
+    @Override
+    public OpenedEnrollingClass getOpenClasses(String maHP, String keyword, int page, int limit, String maHocKy) {
         if (page < 1) page = 1;
         if (limit < 1) limit = 10;
 
@@ -255,8 +260,8 @@ public class StudentServiceImpl implements StudentService {
             effectiveKeyword = maHP.trim();
         }
 
-        List<LopHocPhan> classes = studentRepository.findOpenClasses(null, effectiveKeyword, page, limit);
-        long totalItems = studentRepository.countOpenClasses(null, effectiveKeyword);
+        List<LopHocPhan> classes = studentRepository.findOpenClasses(maHocKy, effectiveKeyword, page, limit);
+        long totalItems = studentRepository.countOpenClasses(maHocKy, effectiveKeyword);
         int totalPages = (int) Math.ceil((double) totalItems / limit);
         if (totalPages == 0) totalPages = 1;
 
@@ -266,7 +271,7 @@ public class StudentServiceImpl implements StudentService {
             String maHocPhan = lhp.getMonHoc() != null ? lhp.getMonHoc().getMaHP() : "";
             int soTinChi = lhp.getMonHoc() != null && lhp.getMonHoc().getSoTinChi() != null ? lhp.getMonHoc().getSoTinChi() : 0;
             String tenGV = lhp.getGiangVien() != null ? (lhp.getGiangVien().getHoTen() != null ? lhp.getGiangVien().getHoTen() : "") : "";
-            String trangThaiStr = lhp.getTrangThai() != null ? lhp.getTrangThai().name() : "DANG_MO";
+            String trangThaiStr = lhp.getTrangThai() != null ? lhp.getTrangThai().name() : "MODANGKY";
             String phongHoc = studentRepository.findPhongHocByMaLHP(lhp.getMaLHP());
 
             items.add(new OpenedEnrollingClass.OpenClassItem(
@@ -293,15 +298,30 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     public RegisteredClassResponse getRegisteredClasses(String maSV) {
+        return getRegisteredClasses(maSV, null);
+    }
+
+    @Override
+    public RegisteredClassResponse getRegisteredClasses(String maSV, String maHocKy) {
         if (maSV == null || maSV.isBlank()) {
             throw new StudentBusinessException(400, "Mã sinh viên không hợp lệ");
         }
 
-        List<HoSoHocPhan> list = studentRepository.findRegisteredClasses(maSV);
+        List<HoSoHocPhan> list;
+        if (maHocKy != null && !maHocKy.isBlank() && !"all".equalsIgnoreCase(maHocKy)) {
+            list = studentRepository.findRegisteredClassesByHocKy(maSV, maHocKy.trim());
+        } else {
+            list = studentRepository.findRegisteredClasses(maSV);
+        }
+
         List<RegisteredClassResponse.RegisteredClassItem> items = new ArrayList<>();
         int tongTinChi = 0;
 
         for (HoSoHocPhan hs : list) {
+            // YÊU CẦU: danh sách ở dưới CHỈ HIỂN THỊ các lhp trong kỳ đó của sinh viên có trạng thái ĐÃ ĐĂNG KÝ (DADANGKY)
+            if (hs.getTrangThai() != null && hs.getTrangThai() != TrangThaiHocPhan.DADANGKY) {
+                continue;
+            }
             LopHocPhan lhp = hs.getLopHocPhan();
             if (lhp == null || lhp.isDeleted()) continue;
 
@@ -317,12 +337,14 @@ public class StudentServiceImpl implements StudentService {
             OffsetDateTime nowTime = OffsetDateTime.now();
             // Chỉ được hủy trước khi học kỳ bắt đầu và cổng đăng ký còn mở
             if (Boolean.TRUE.equals(lhp.isEditable()) && hk != null && today.isBefore(hk.getThoiGianBD())) {
-                if (lhp.getThoiGianKTDK() != null && nowTime.isBefore(lhp.getThoiGianKTDK())) {
+                if (lhp.getThoiGianKTDK() == null || nowTime.isBefore(lhp.getThoiGianKTDK())) {
                     canCancel = true;
                 }
+            } else if (hk != null && today.isBefore(hk.getThoiGianBD())) {
+                canCancel = true;
             }
 
-            items.add(new RegisteredClassResponse.RegisteredClassItem(
+            RegisteredClassResponse.RegisteredClassItem item = new RegisteredClassResponse.RegisteredClassItem(
                     hs.getMaHoSo(),
                     lhp.getMaLHP(),
                     tenHP,
@@ -335,9 +357,13 @@ public class StudentServiceImpl implements StudentService {
                     phongHoc,
                     lhp.isEditable(),
                     canCancel,
-                    lhp.getTrangThai() != null ? lhp.getTrangThai().name() : "DANGHOC",
+                    hs.getTrangThai() != null ? hs.getTrangThai().name() : "DADANGKY",
                     lhp.getThoiGianKTDK() != null ? lhp.getThoiGianKTDK().toString() : null
-            ));
+            );
+            if (hk != null && hk.getMaHocKy() != null) {
+                item.setMaHocKy(hk.getMaHocKy());
+            }
+            items.add(item);
         }
 
         return new RegisteredClassResponse(items, items.size(), tongTinChi, 24);
@@ -387,7 +413,14 @@ public class StudentServiceImpl implements StudentService {
             throw new StudentBusinessException(400, "Sinh viên đã đăng ký lớp học phần này");
         }
 
-        List<HoSoHocPhan> currentRegistered = studentRepository.findRegisteredClasses(maSV);
+        String maHocKy = (lhp.getHocKy() != null && lhp.getHocKy().getMaHocKy() != null)
+                ? lhp.getHocKy().getMaHocKy()
+                : null;
+
+        List<HoSoHocPhan> currentRegistered = (maHocKy != null && !maHocKy.isBlank())
+                ? studentRepository.findRegisteredClassesByHocKy(maSV, maHocKy)
+                : studentRepository.findRegisteredClasses(maSV);
+
         int currentCredits = 0;
         for (HoSoHocPhan hs : currentRegistered) {
             if (!hs.isDaHuy() && hs.getLopHocPhan() != null && hs.getLopHocPhan().getMonHoc() != null) {
@@ -410,7 +443,7 @@ public class StudentServiceImpl implements StudentService {
                 }
             }
 
-            boolean hasConflict = ScheduleConflictUtil.checkStudentScheduleConflict(lhp.getThu(), tietBD, tietKT, enrolledClasses);
+            boolean hasConflict = ScheduleConflictUtil.checkStudentScheduleConflict(maHocKy, lhp.getThu(), tietBD, tietKT, enrolledClasses);
             if (hasConflict) {
                 throw new StudentBusinessException(409, "Trùng thời khóa biểu với lớp khác");
             }

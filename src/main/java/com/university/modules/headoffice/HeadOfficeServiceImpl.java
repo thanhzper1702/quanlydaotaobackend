@@ -42,8 +42,8 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
 
     @Override
     public CreateCourseResponseDTO createCourse(CreateCourseRequestDTO request) {
-        if (request == null || isBlank(request.getMaHP()) || isBlank(request.getTenHP()) || request.getSoTinChi() == null || request.getSoTinChi() <= 0) {
-            throw new IllegalArgumentException("Thông tin học phần không hợp lệ");
+        if (request == null || isBlank(request.getMaHP()) || isBlank(request.getTenHP()) || request.getSoTinChi() == null || request.getSoTinChi() < 1 || request.getSoTinChi() > 4) {
+            throw new IllegalArgumentException("Thông tin học phần không hợp lệ (Số tín chỉ từ 1 đến 4)");
         }
         if (repository.findCourseById(request.getMaHP().trim()).isPresent()) {
             throw new IllegalStateException("Học phần đã tồn tại");
@@ -58,8 +58,8 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
 
     @Override
     public UpdateCourseResponseDTO updateCourse(String maHP, UpdateCourseRequestDTO request) {
-        if (isBlank(maHP) || request == null || isBlank(request.getTenHP()) || request.getSoTinChi() == null || request.getSoTinChi() <= 0) {
-            throw new IllegalArgumentException("Thông tin cập nhật học phần không hợp lệ");
+        if (isBlank(maHP) || request == null || isBlank(request.getTenHP()) || request.getSoTinChi() == null || request.getSoTinChi() < 1 || request.getSoTinChi() > 4) {
+            throw new IllegalArgumentException("Thông tin cập nhật học phần không hợp lệ (Số tín chỉ từ 1 đến 4)");
         }
         HocPhan course = repository.findCourseById(maHP.trim())
                 .orElseThrow(() -> new java.util.NoSuchElementException("Không tìm thấy học phần"));
@@ -101,6 +101,18 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
         if (end.isBefore(start)) {
             throw new IllegalArgumentException("Ngày kết thúc phải sau ngày bắt đầu");
         }
+        if (start.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Thời gian bắt đầu học kỳ không được trước thời điểm hiện tại");
+        }
+
+        // Kiểm tra không cho phép các học kỳ chồng chéo lên nhau
+        boolean isOverlapped = repository.findAllSemesters().stream()
+                .filter(s -> !s.getMaHocKy().equalsIgnoreCase(request.getMaHocKy().trim()))
+                .anyMatch(s -> !start.isAfter(s.getThoiGianKT()) && !end.isBefore(s.getThoiGianBD()));
+        if (isOverlapped) {
+            throw new IllegalStateException("Thời gian học kỳ bị chồng chéo với học kỳ khác đã tồn tại");
+        }
+
         TenHocKy semesterName;
         try {
             semesterName = TenHocKy.valueOf(request.getTenHocKy().trim().toUpperCase());
@@ -114,6 +126,53 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
         semester.setThoiGianKT(end);
         HocKy saved = repository.saveSemester(semester);
         return new CreateSemesterResponseDTO(saved.getMaHocKy(), saved.getTenHocKy().name(), saved.getThoiGianBD(), saved.getThoiGianKT());
+    }
+
+    @Override
+    public void updateSemester(String maHocKy, UpdateSemesterRequestDTO request) {
+        if (isBlank(maHocKy) || request == null || isBlank(request.getTenHocKy())
+                || isBlank(request.getThoiGianBD()) || isBlank(request.getThoiGianKT())) {
+            throw new IllegalArgumentException("Thông tin cập nhật học kỳ không hợp lệ");
+        }
+        HocKy semester = repository.findSemesterById(maHocKy.trim())
+                .orElseThrow(() -> new java.util.NoSuchElementException("Không tìm thấy học kỳ: " + maHocKy));
+
+        // Kiểm tra: Học kỳ đang diễn ra hoặc đã kết thúc không được sửa
+        LocalDate today = LocalDate.now();
+        boolean isCurrent = semester.getIsCurrent() || "2026_2027_HK1".equalsIgnoreCase(semester.getMaHocKy());
+        boolean isEnded = semester.getThoiGianKT() != null && semester.getThoiGianKT().isBefore(today);
+        if (isCurrent || isEnded || !semester.getThoiGianBD().isAfter(today)) {
+            throw new IllegalStateException("Học kỳ đang diễn ra hoặc đã kết thúc không được phép chỉnh sửa");
+        }
+
+        LocalDate start = parseDate(request.getThoiGianBD());
+        LocalDate end = parseDate(request.getThoiGianKT());
+        if (end.isBefore(start)) {
+            throw new IllegalArgumentException("Ngày kết thúc phải sau ngày bắt đầu");
+        }
+        if (start.isBefore(today)) {
+            throw new IllegalArgumentException("Thời gian bắt đầu học kỳ không được trước thời điểm hiện tại");
+        }
+
+        // Kiểm tra chồng chéo với học kỳ khác
+        boolean isOverlapped = repository.findAllSemesters().stream()
+                .filter(s -> !s.getMaHocKy().equalsIgnoreCase(maHocKy.trim()))
+                .anyMatch(s -> !start.isAfter(s.getThoiGianKT()) && !end.isBefore(s.getThoiGianBD()));
+        if (isOverlapped) {
+            throw new IllegalStateException("Thời gian học kỳ bị chồng chéo với học kỳ khác đã tồn tại");
+        }
+
+        TenHocKy semesterName;
+        try {
+            semesterName = TenHocKy.valueOf(request.getTenHocKy().trim().toUpperCase());
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Tên học kỳ phải là HOCKY1, HOCKY2 hoặc HOCKYHE");
+        }
+
+        semester.setTenHocKy(semesterName);
+        semester.setThoiGianBD(start);
+        semester.setThoiGianKT(end);
+        repository.saveSemester(semester);
     }
 
     @Override
@@ -351,7 +410,8 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
     }
 
     private HeadOfficeSemesterResponseDTO.SemesterItem toSemesterItem(HocKy semester) {
-        return new HeadOfficeSemesterResponseDTO.SemesterItem(semester.getMaHocKy(), semester.getTenHocKy().name(), semester.getThoiGianBD(), semester.getThoiGianKT());
+        boolean isCurrent = semester.getIsCurrent() || "2026_2027_HK1".equalsIgnoreCase(semester.getMaHocKy());
+        return new HeadOfficeSemesterResponseDTO.SemesterItem(semester.getMaHocKy(), semester.getTenHocKy().name(), semester.getThoiGianBD(), semester.getThoiGianKT(), isCurrent, isCurrent);
     }
 
     private HeadOfficeClassResponseDTO.ClassItem toClassItem(LopHocPhan courseClass) {
@@ -372,8 +432,8 @@ public class HeadOfficeServiceImpl implements HeadOfficeService {
     }
 
     private static void validatePage(int page, int limit) {
-        if (page < 1 || limit < 1 || limit > 100) {
-            throw new IllegalArgumentException("Page phải >= 1 và limit phải trong khoảng 1 đến 100");
+        if (page < 1 || limit < 1 || limit > 500) {
+            throw new IllegalArgumentException("Page phải >= 1 và limit phải trong khoảng 1 đến 500");
         }
     }
 

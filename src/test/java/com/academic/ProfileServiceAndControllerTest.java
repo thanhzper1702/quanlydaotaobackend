@@ -143,6 +143,7 @@ public class ProfileServiceAndControllerTest {
             NguoiDung u = users.get(cccd);
             if (u != null) {
                 u.setMatKhauHashed(newHashedPassword);
+                u.setRefreshToken(null);
                 return true;
             }
             return false;
@@ -215,6 +216,7 @@ public class ProfileServiceAndControllerTest {
         svUser.setSoDienThoai("0912345678");
         svUser.setDiaChi("Hà Nội");
         svUser.setAnhThe("https://ptit.edu.vn/storage/avatars/B21DCCN001.jpg");
+        svUser.setRefreshToken("active_refresh_token_abc");
         svUser.setMatKhauHashed(PasswordUtil.hash("123456"));
         fakeRepository.users.put(svUser.getCccd(), svUser);
 
@@ -423,6 +425,9 @@ public class ProfileServiceAndControllerTest {
         NguoiDung u = fakeRepository.users.get("001203000001");
         assertTrue(PasswordUtil.verify("NewPass@456", u.getMatKhauHashed()));
         assertFalse(PasswordUtil.verify("123456", u.getMatKhauHashed()));
+        assertNull(u.getRefreshToken(), "Refresh token phải bị thu hồi (null) khi đổi mật khẩu");
+        assertNotNull(response.getCookies().get("refreshToken"));
+        assertEquals(0, response.getCookies().get("refreshToken").getMaxAge());
     }
 
     @Test
