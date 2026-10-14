@@ -11,21 +11,14 @@ public interface HeadOfficeService {
 
     UpdateCourseResponseDTO updateCourse(String maHP, UpdateCourseRequestDTO request);
 
-    void deleteCourse(String maHP);
-
     HeadOfficeSemesterResponseDTO getSemesters();
 
     CreateSemesterResponseDTO createSemester(CreateSemesterRequestDTO request);
 
     void updateSemester(String maHocKy, UpdateSemesterRequestDTO request);
 
-    HeadOfficeClassResponseDTO getClasses(String maHocKy, int page, int limit);
-
-    HeadOfficeClassGradeResponseDTO getClassGrades(String maLHP);
-
-    HeadOfficeClassResponseDTO.ClassItem updateGradeLock(String maLHP, boolean khoaDiem);
-
     HeadOfficeLecturerResponseDTO getLecturers(String khoa, int page, int limit);
+    HeadOfficeLecturerResponseDTO getLecturers(String khoa, String keyword, int page, int limit);
 
     HeadOfficeStudentResponseDTO getStudents(String nienKhoa, String khoa, int page, int limit);
     HeadOfficeStudentResponseDTO getStudents(String nienKhoa, String khoa, String keyword, int page, int limit);
@@ -34,12 +27,4 @@ public interface HeadOfficeService {
 
     SemesterAcademicStatisticsResponseDTO getSemesterAcademicStatistics(String maHocKy, String nienKhoa,
                                                                           String khoa, String hocLuc);
-
-    byte[] exportStatisticsExcel(String maHocKy);
-
-    byte[] exportLecturersExcel(String khoa);
-
-    byte[] exportStudentsExcel(String nienKhoa, String khoa);
-
-    byte[] exportClassGradesExcel(String maLHP);
 }

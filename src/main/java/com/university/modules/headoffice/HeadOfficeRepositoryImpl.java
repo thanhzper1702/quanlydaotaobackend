@@ -7,16 +7,17 @@ import com.university.core.model.HoSoHocPhan;
 import com.university.core.model.LopHocPhan;
 import com.university.core.model.SinhVien;
 import com.university.core.model.TruongPhongDaoTao;
-import com.university.core.model.YeuCauMoLop;
-import com.university.core.model.enums.TrangThaiYeuCau;
 import com.university.core.model.enums.KetQua;
 import com.university.core.model.enums.TrangThaiHocPhan;
 import com.university.core.repository.AbstractJpaRepository;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongDaoTao, String> implements HeadOfficeRepository {
 
@@ -71,19 +72,6 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
         });
     }
 
-    @Override
-    public boolean softDeleteCourseIfUnused(String maHP) {
-        return executeInTransaction(em -> {
-            int updated = em.createQuery(
-                            "UPDATE HocPhan h SET h.deleted = true " +
-                                    "WHERE h.maHP = :maHP AND h.deleted = false " +
-                                    "AND NOT EXISTS (SELECT l FROM LopHocPhan l WHERE l.monHoc = h) " +
-                                    "AND NOT EXISTS (SELECT y FROM YeuCauMoLop y WHERE y.hocPhan = h)")
-                    .setParameter("maHP", maHP)
-                    .executeUpdate();
-            return updated > 0;
-        });
-    }
 
     @Override
     public List<HocKy> findAllSemesters() {
@@ -120,61 +108,67 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
         });
     }
 
-    @Override
-    public List<LopHocPhan> findClasses(String maHocKy, int page, int limit) {
-        return execute(em -> {
-            TypedQuery<LopHocPhan> query = em.createQuery(
-                    "SELECT l FROM LopHocPhan l JOIN FETCH l.monHoc JOIN FETCH l.hocKy " +
-                            "LEFT JOIN FETCH l.giangVien g LEFT JOIN FETCH g.nguoiDung " +
-                            "WHERE l.hocKy.maHocKy = :maHocKy AND l.deleted = false ORDER BY l.maLHP ASC", LopHocPhan.class)
-                    .setParameter("maHocKy", maHocKy);
-            query.setFirstResult(Math.max(0, (page - 1) * limit));
-            query.setMaxResults(limit);
-            return query.getResultList();
-        });
-    }
 
-    @Override
-    public long countClasses(String maHocKy) {
-        return execute(em -> em.createQuery(
-                "SELECT COUNT(l) FROM LopHocPhan l WHERE l.hocKy.maHocKy = :maHocKy AND l.deleted = false", Long.class)
-                .setParameter("maHocKy", maHocKy).getSingleResult());
-    }
-
-    @Override
-    public Optional<LopHocPhan> findClassById(String maLHP) {
-        return execute(em -> {
-            try {
-                return Optional.of(em.createQuery(
-                                "SELECT l FROM LopHocPhan l JOIN FETCH l.monHoc JOIN FETCH l.hocKy " +
-                                        "WHERE l.maLHP = :maLHP AND l.deleted = false", LopHocPhan.class)
-                        .setParameter("maLHP", maLHP).getSingleResult());
-            } catch (NoResultException exception) {
-                return Optional.empty();
-            }
-        });
-    }
-
-    @Override
-    public List<HoSoHocPhan> findClassGrades(String maLHP) {
-        return execute(em -> em.createQuery(
-                        "SELECT h FROM HoSoHocPhan h JOIN FETCH h.sinhVien s JOIN FETCH s.nguoiDung " +
-                                "WHERE h.lopHocPhan.maLHP = :maLHP AND h.deleted = false ORDER BY s.maSV ASC", HoSoHocPhan.class)
-                .setParameter("maLHP", maLHP).getResultList());
+    private static List<String> resolveKhoaAliases(String khoa) {
+        if (khoa == null || khoa.trim().isEmpty() || "all".equalsIgnoreCase(khoa.trim())) {
+            return List.of();
+        }
+        String k = khoa.trim();
+        String lower = k.toLowerCase();
+        Set<String> aliases = new LinkedHashSet<>();
+        aliases.add(k);
+        aliases.add(lower);
+        if ("cntt".equals(lower) || lower.contains("công nghệ thông tin")) {
+            aliases.add("CNTT");
+            aliases.add("Công nghệ thông tin");
+            aliases.add("Công nghệ Thông tin");
+            aliases.add("Khoa Công nghệ thông tin");
+            aliases.add("Khoa Công nghệ Thông tin");
+        } else if ("kt".equals(lower) || lower.contains("kinh tế")) {
+            aliases.add("KT");
+            aliases.add("Kinh tế");
+            aliases.add("Khoa Kinh tế");
+        } else if ("ddt".equals(lower) || lower.contains("điện")) {
+            aliases.add("DDT");
+            aliases.add("Điện - Điện tử");
+            aliases.add("Khoa Điện - Điện tử");
+        } else if ("ckot".equals(lower) || lower.contains("cơ khí") || lower.contains("ô tô")) {
+            aliases.add("CKOT");
+            aliases.add("Cơ khí Ô tô");
+            aliases.add("Khoa Cơ khí Ô tô");
+        }
+        return new ArrayList<>(aliases);
     }
 
     @Override
     public List<GiangVien> findLecturers(String khoa, int page, int limit) {
+        return findLecturers(khoa, null, page, limit);
+    }
+
+    @Override
+    public List<GiangVien> findLecturers(String khoa, String keyword, int page, int limit) {
         return execute(em -> {
             StringBuilder sb = new StringBuilder("SELECT g FROM GiangVien g JOIN FETCH g.nguoiDung WHERE g.deleted = false");
-            if (khoa != null && !khoa.trim().isEmpty()) {
-                sb.append(" AND g.khoa = :khoa");
+            boolean hasKhoa = khoa != null && !khoa.trim().isEmpty() && !"all".equalsIgnoreCase(khoa.trim());
+            boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+
+            if (hasKhoa) {
+                sb.append(" AND (LOWER(g.khoa) = :khoaLower OR g.khoa = :khoa OR g.khoa IN :khoaAliases OR LOWER(g.khoa) LIKE :khoaLike)");
+            }
+            if (hasKeyword) {
+                sb.append(" AND (LOWER(g.maNV) LIKE :kw OR LOWER(g.nguoiDung.hoTen) LIKE :kw OR LOWER(g.nguoiDung.email) LIKE :kw OR LOWER(g.nguoiDung.soDienThoai) LIKE :kw)");
             }
             sb.append(" ORDER BY g.maNV ASC");
 
             TypedQuery<GiangVien> query = em.createQuery(sb.toString(), GiangVien.class);
-            if (khoa != null && !khoa.trim().isEmpty()) {
-                query.setParameter("khoa", khoa);
+            if (hasKhoa) {
+                query.setParameter("khoaLower", khoa.trim().toLowerCase());
+                query.setParameter("khoa", khoa.trim());
+                query.setParameter("khoaAliases", resolveKhoaAliases(khoa));
+                query.setParameter("khoaLike", "%" + khoa.trim().toLowerCase() + "%");
+            }
+            if (hasKeyword) {
+                query.setParameter("kw", "%" + keyword.trim().toLowerCase() + "%");
             }
 
             int firstResult = Math.max(0, (page - 1) * limit);
@@ -187,14 +181,31 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
 
     @Override
     public long countLecturers(String khoa) {
+        return countLecturers(khoa, null);
+    }
+
+    @Override
+    public long countLecturers(String khoa, String keyword) {
         return execute(em -> {
-            StringBuilder sb = new StringBuilder("SELECT COUNT(g) FROM GiangVien g WHERE g.deleted = false");
-            if (khoa != null && !khoa.trim().isEmpty()) {
-                sb.append(" AND g.khoa = :khoa");
+            StringBuilder sb = new StringBuilder("SELECT COUNT(g) FROM GiangVien g JOIN g.nguoiDung u WHERE g.deleted = false");
+            boolean hasKhoa = khoa != null && !khoa.trim().isEmpty() && !"all".equalsIgnoreCase(khoa.trim());
+            boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+
+            if (hasKhoa) {
+                sb.append(" AND (LOWER(g.khoa) = :khoaLower OR g.khoa = :khoa OR g.khoa IN :khoaAliases OR LOWER(g.khoa) LIKE :khoaLike)");
+            }
+            if (hasKeyword) {
+                sb.append(" AND (LOWER(g.maNV) LIKE :kw OR LOWER(u.hoTen) LIKE :kw OR LOWER(u.email) LIKE :kw OR LOWER(u.soDienThoai) LIKE :kw)");
             }
             TypedQuery<Long> query = em.createQuery(sb.toString(), Long.class);
-            if (khoa != null && !khoa.trim().isEmpty()) {
-                query.setParameter("khoa", khoa);
+            if (hasKhoa) {
+                query.setParameter("khoaLower", khoa.trim().toLowerCase());
+                query.setParameter("khoa", khoa.trim());
+                query.setParameter("khoaAliases", resolveKhoaAliases(khoa));
+                query.setParameter("khoaLike", "%" + khoa.trim().toLowerCase() + "%");
+            }
+            if (hasKeyword) {
+                query.setParameter("kw", "%" + keyword.trim().toLowerCase() + "%");
             }
             return query.getSingleResult();
         });
@@ -428,38 +439,5 @@ public class HeadOfficeRepositoryImpl extends AbstractJpaRepository<TruongPhongD
     @Override
     public long countTotalCourses() {
         return countCourses();
-    }
-
-    @Override
-    public boolean updateGradeLock(String maLHP, boolean isLocked) {
-        return executeInTransaction(em -> {
-            int updated = em.createQuery(
-                    "UPDATE LopHocPhan l SET l.khoaDiem = :locked WHERE l.maLHP = :maLHP AND l.deleted = false")
-                    .setParameter("locked", isLocked)
-                    .setParameter("maLHP", maLHP)
-                    .executeUpdate();
-            return updated > 0;
-        });
-    }
-
-    @Override
-    public List<YeuCauMoLop> findPendingClassApprovals() {
-        return execute(em -> em.createQuery(
-                "SELECT y FROM YeuCauMoLop y JOIN FETCH y.sinhVien s JOIN FETCH s.nguoiDung JOIN FETCH y.hocPhan " +
-                "WHERE y.trangThai = :trangThai AND y.deleted = false ORDER BY y.ngayTao ASC", YeuCauMoLop.class)
-                .setParameter("trangThai", TrangThaiYeuCau.DAGUI)
-                .getResultList());
-    }
-
-    @Override
-    public boolean updateApprovalStatus(String maYeuCau, TrangThaiYeuCau status) {
-        return executeInTransaction(em -> {
-            int updated = em.createQuery(
-                    "UPDATE YeuCauMoLop y SET y.trangThai = :status WHERE y.maYeuCau = :maYeuCau AND y.deleted = false")
-                    .setParameter("status", status)
-                    .setParameter("maYeuCau", maYeuCau)
-                    .executeUpdate();
-            return updated > 0;
-        });
     }
 }

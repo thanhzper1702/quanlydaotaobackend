@@ -104,10 +104,11 @@ public class HeadOfficeController extends BaseController {
     @GET
     @Path("/lecturers")
     public Response getLecturers(@QueryParam("khoa") String khoa,
+                                 @QueryParam("keyword") String keyword,
                                  @QueryParam("page") @DefaultValue("1") int page,
                                  @QueryParam("limit") @DefaultValue("10") int limit) {
         return execute(() -> {
-            HeadOfficeResponseDTO.HeadOfficeLecturerResponseDTO data = headOfficeService.getLecturers(khoa, page, limit);
+            HeadOfficeResponseDTO.HeadOfficeLecturerResponseDTO data = headOfficeService.getLecturers(khoa, keyword, page, limit);
             ApiResponse<Object> response = ApiResponse.success("Danh sách giảng viên kèm meta", data == null ? List.of() : data.getItems());
             response.setMeta(buildPaginationMeta(page, limit, data == null ? 0 : data.getTotalElements()));
             return Response.ok(response).build();

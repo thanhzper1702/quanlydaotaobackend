@@ -119,10 +119,13 @@ public final class HeadOfficeResponseDTO {
         public long getTotalElements() { return totalElements; }
         public int getTotalPages() { return totalPages; }
         public static class LecturerItem {
-            private String maNV; private String hoTen; private String hocVi; private String khoa; private String email; private String anhThe; private Integer soLopPhuTrach;
+            private String maNV; private String hoTen; private String hocVi; private String khoa; private String email; private String anhThe; private Integer soLopPhuTrach; private String soDienThoai;
             public LecturerItem() { }
             public LecturerItem(String maNV, String hoTen, String hocVi, String khoa, String email, String anhThe, Integer soLopPhuTrach) {
-                this.maNV = maNV; this.hoTen = hoTen; this.hocVi = hocVi; this.khoa = khoa; this.email = email; this.anhThe = anhThe; this.soLopPhuTrach = soLopPhuTrach;
+                this(maNV, hoTen, hocVi, khoa, email, anhThe, soLopPhuTrach, null);
+            }
+            public LecturerItem(String maNV, String hoTen, String hocVi, String khoa, String email, String anhThe, Integer soLopPhuTrach, String soDienThoai) {
+                this.maNV = maNV; this.hoTen = hoTen; this.hocVi = hocVi; this.khoa = khoa; this.email = email; this.anhThe = anhThe; this.soLopPhuTrach = soLopPhuTrach; this.soDienThoai = soDienThoai;
             }
             public String getMaNV() { return maNV; }
             public String getHoTen() { return hoTen; }
@@ -131,6 +134,8 @@ public final class HeadOfficeResponseDTO {
             public String getEmail() { return email; }
             public String getAnhThe() { return anhThe; }
             public Integer getSoLopPhuTrach() { return soLopPhuTrach; }
+            public String getSoDienThoai() { return soDienThoai; }
+            public String getSdt() { return soDienThoai; }
         }
     }
 
@@ -159,57 +164,6 @@ public final class HeadOfficeResponseDTO {
         }
     }
 
-    public static class HeadOfficeClassResponseDTO {
-        private List<ClassItem> items; private int page; private int size; private long totalElements; private int totalPages;
-        public HeadOfficeClassResponseDTO() { }
-        public HeadOfficeClassResponseDTO(List<ClassItem> items, int page, int size, long totalElements) { this.items = items; this.page = page; this.size = size; this.totalElements = totalElements; this.totalPages = size > 0 ? (int) Math.ceil((double) totalElements / size) : 0; }
-        public List<ClassItem> getItems() { return items; }
-        public int getPage() { return page; }
-        public int getSize() { return size; }
-        public long getTotalElements() { return totalElements; }
-        public int getTotalPages() { return totalPages; }
-        public static class ClassItem {
-            private String maLHP; private String tenLHP; private String maHP; private String tenHP; private String maGV; private String tenGV; private Integer siSoHienTai; private Integer siSoToiDa; private String trangThai; private Boolean khoaDiem;
-            public ClassItem() { }
-            public ClassItem(String maLHP, String tenLHP, String maHP, String tenHP, String maGV, String tenGV, Integer siSoHienTai, Integer siSoToiDa, String trangThai, Boolean khoaDiem) { this.maLHP = maLHP; this.tenLHP = tenLHP; this.maHP = maHP; this.tenHP = tenHP; this.maGV = maGV; this.tenGV = tenGV; this.siSoHienTai = siSoHienTai; this.siSoToiDa = siSoToiDa; this.trangThai = trangThai; this.khoaDiem = khoaDiem; }
-            public String getMaLHP() { return maLHP; }
-            public String getTenLHP() { return tenLHP; }
-            public String getMaHP() { return maHP; }
-            public String getTenHP() { return tenHP; }
-            public String getMaGV() { return maGV; }
-            public String getTenGV() { return tenGV; }
-            public Integer getSiSoHienTai() { return siSoHienTai; }
-            public Integer getSiSoToiDa() { return siSoToiDa; }
-            public String getTrangThai() { return trangThai; }
-            public Boolean getKhoaDiem() { return khoaDiem; }
-        }
-    }
-
-    public static class HeadOfficeClassGradeResponseDTO {
-        private String maLHP; private String tenLHP; private Boolean khoaDiem; private Integer siSoHienTai; private List<GradeItem> items;
-        public HeadOfficeClassGradeResponseDTO() { }
-        public HeadOfficeClassGradeResponseDTO(String maLHP, String tenLHP, Boolean khoaDiem, Integer siSoHienTai, List<GradeItem> items) { this.maLHP = maLHP; this.tenLHP = tenLHP; this.khoaDiem = khoaDiem; this.siSoHienTai = siSoHienTai; this.items = items; }
-        public String getMaLHP() { return maLHP; }
-        public String getTenLHP() { return tenLHP; }
-        public Boolean getKhoaDiem() { return khoaDiem; }
-        public Integer getSiSoHienTai() { return siSoHienTai; }
-        public List<GradeItem> getItems() { return items; }
-        public static class GradeItem {
-            private Long maHoSo; private String maSV; private String hoTen; private String anhThe; private BigDecimal diemQuaTrinh; private BigDecimal diemCuoiKy; private BigDecimal diemTongKet; private String ketQua; private Integer soBuoiVang; private String trangThai;
-            public GradeItem() { }
-            public GradeItem(Long maHoSo, String maSV, String hoTen, String anhThe, BigDecimal diemQuaTrinh, BigDecimal diemCuoiKy, BigDecimal diemTongKet, String ketQua, Integer soBuoiVang, String trangThai) { this.maHoSo = maHoSo; this.maSV = maSV; this.hoTen = hoTen; this.anhThe = anhThe; this.diemQuaTrinh = diemQuaTrinh; this.diemCuoiKy = diemCuoiKy; this.diemTongKet = diemTongKet; this.ketQua = ketQua; this.soBuoiVang = soBuoiVang; this.trangThai = trangThai; }
-            public Long getMaHoSo() { return maHoSo; }
-            public String getMaSV() { return maSV; }
-            public String getHoTen() { return hoTen; }
-            public String getAnhThe() { return anhThe; }
-            public BigDecimal getDiemQuaTrinh() { return diemQuaTrinh; }
-            public BigDecimal getDiemCuoiKy() { return diemCuoiKy; }
-            public BigDecimal getDiemTongKet() { return diemTongKet; }
-            public String getKetQua() { return ketQua; }
-            public Integer getSoBuoiVang() { return soBuoiVang; }
-            public String getTrangThai() { return trangThai; }
-        }
-    }
 
     public static class HeadOfficeStatisticsResponseDTO {
         private long totalStudents; private long totalLecturers; private long totalCourses; private long totalClasses; private long failedGrades; private long suspendedExamRecords;

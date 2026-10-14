@@ -39,11 +39,6 @@ public final class HeadOfficeRequestDTO {
         public void setSoTinChi(Integer soTinChi) { this.soTinChi = soTinChi; }
     }
 
-    public static class UpdateGradeLockRequestDTO {
-        private Boolean khoaDiem;
-        public Boolean getKhoaDiem() { return khoaDiem; }
-        public void setKhoaDiem(Boolean khoaDiem) { this.khoaDiem = khoaDiem; }
-    }
 
     public static class UpdateSemesterRequestDTO {
         private String tenHocKy;

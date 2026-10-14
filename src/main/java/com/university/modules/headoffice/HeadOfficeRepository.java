@@ -3,12 +3,8 @@ package com.university.modules.headoffice;
 import com.university.core.model.GiangVien;
 import com.university.core.model.HocKy;
 import com.university.core.model.HocPhan;
-import com.university.core.model.HoSoHocPhan;
-import com.university.core.model.LopHocPhan;
 import com.university.core.model.SinhVien;
 import com.university.core.model.TruongPhongDaoTao;
-import com.university.core.model.YeuCauMoLop;
-import com.university.core.model.enums.TrangThaiYeuCau;
 import com.university.core.repository.GenericRepository;
 import java.util.List;
 import java.util.Optional;
@@ -23,25 +19,17 @@ public interface HeadOfficeRepository extends GenericRepository<TruongPhongDaoTa
 
     HocPhan saveCourse(HocPhan course);
 
-    boolean softDeleteCourseIfUnused(String maHP);
-
     List<HocKy> findAllSemesters();
 
     Optional<HocKy> findSemesterById(String maHocKy);
 
     HocKy saveSemester(HocKy semester);
 
-    List<LopHocPhan> findClasses(String maHocKy, int page, int limit);
-
-    long countClasses(String maHocKy);
-
-    Optional<LopHocPhan> findClassById(String maLHP);
-
-    List<HoSoHocPhan> findClassGrades(String maLHP);
-
     List<GiangVien> findLecturers(String khoa, int page, int limit);
+    List<GiangVien> findLecturers(String khoa, String keyword, int page, int limit);
 
     long countLecturers(String khoa);
+    long countLecturers(String khoa, String keyword);
 
     long countClassesByLecturer(String maNV);
 
@@ -74,10 +62,4 @@ public interface HeadOfficeRepository extends GenericRepository<TruongPhongDaoTa
     List<Object[]> findSemesterAcademicAverages(String maHocKy, String nienKhoa, String khoa);
 
     long countTotalCourses();
-
-    boolean updateGradeLock(String maLHP, boolean isLocked);
-
-    List<YeuCauMoLop> findPendingClassApprovals();
-
-    boolean updateApprovalStatus(String maYeuCau, TrangThaiYeuCau status);
 }
